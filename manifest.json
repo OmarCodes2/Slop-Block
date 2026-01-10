@@ -21,6 +21,8 @@
         "https://www.linkedin.com/*"
       ],
       "js": [
+        "content/filter.js",
+        "content/ui.js",
         "content/content_script.js"
       ],
       "css": [
