@@ -323,7 +323,9 @@ function blurPost(postElement, isPending = false) {
 
   // Add reveal button click handler
   const revealButton = overlay.querySelector('.linkedin-filter-reveal-button');
-  revealButton.addEventListener('click', () => {
+  revealButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     unblurPost(postElement);
   });
 
@@ -338,10 +340,16 @@ function blurPost(postElement, isPending = false) {
  * @param {Element} postElement - The post DOM element
  */
 function unblurPost(postElement) {
-  const overlay = postElement.querySelector('.linkedin-filter-overlay');
-  if (overlay) {
-    overlay.remove();
-  }
+  // Remove all overlay elements first (in case there are multiple)
+  const overlays = postElement.querySelectorAll('.linkedin-filter-overlay');
+  overlays.forEach(overlay => {
+    // Force immediate removal
+    if (overlay.parentNode) {
+      overlay.parentNode.removeChild(overlay);
+    }
+  });
+  
+  // Remove the blur class to remove blur effect
   postElement.classList.remove('linkedin-filter-blurred');
 
   // Mark as user-revealed using the postKey stored on the element
@@ -479,25 +487,48 @@ function processPost(postElement) {
 /**
  * Find post elements in the DOM
  * Uses semantic selectors first, then falls back to classnames
+ * Excludes header/navigation elements to prevent overlays from covering the header
  * 
  * @param {Element} container - Container to search within
  * @returns {NodeList|Array} List of post elements
  */
 function findPostElements(container = document) {
+  // Exclude header/navigation areas
+  const headerSelectors = [
+    'header',
+    'nav',
+    '[role="banner"]',
+    '[role="navigation"]',
+    '.global-nav',
+    '.artdeco-global-nav',
+    '.scaffold-layout__header'
+  ];
+  
+  // Check if element is within header/navigation
+  const isInHeader = (element) => {
+    for (const selector of headerSelectors) {
+      if (element.closest(selector)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   // Primary: semantic selectors (more stable)
-  let posts = container.querySelectorAll('article[role="article"]');
+  let posts = Array.from(container.querySelectorAll('article[role="article"]'));
   
   if (posts.length === 0) {
     // Fallback: try other semantic patterns
-    posts = container.querySelectorAll('article');
+    posts = Array.from(container.querySelectorAll('article'));
   }
 
   if (posts.length === 0) {
     // Last resort: known classnames (may break when LinkedIn changes them)
-    posts = container.querySelectorAll('.feed-shared-update-v2, .feed-shared-update-v2__description');
+    posts = Array.from(container.querySelectorAll('.feed-shared-update-v2, .feed-shared-update-v2__description'));
   }
 
-  return posts;
+  // Filter out any posts that are in header/navigation areas
+  return posts.filter(post => !isInHeader(post));
 }
 
 // Track if observer is already initialized to avoid duplicates

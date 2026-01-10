@@ -14,11 +14,24 @@
 
 /* Blur effect for posts being filtered */
 .linkedin-filter-blurred {
-  filter: blur(8px);
   /* Preserve aspect ratio and prevent layout shift */
   position: relative;
   /* Ensure overlay can be positioned absolutely */
   overflow: hidden;
+  /* Create a new stacking context to contain the overlay */
+  isolation: isolate;
+  /* Ensure z-index is lower than LinkedIn's header */
+  z-index: 1;
+}
+
+/* Blur only the text content, not the entire container */
+.linkedin-filter-blurred .feed-shared-update-v2__description,
+.linkedin-filter-blurred .feed-shared-text,
+.linkedin-filter-blurred .feed-shared-update__description,
+.linkedin-filter-blurred [data-test-id="feed-shared-update-v2__description"],
+.linkedin-filter-blurred article .feed-shared-text,
+.linkedin-filter-blurred [role="article"] .feed-shared-text {
+  filter: blur(8px);
 }
 
 /* Overlay container - positioned absolutely to avoid affecting layout */
@@ -35,11 +48,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  /* Lower z-index to ensure it doesn't cover LinkedIn's header (which uses ~100-200) */
+  z-index: 10;
   /* Ensure overlay is clickable */
   pointer-events: auto;
   /* Smooth appearance */
   animation: linkedin-filter-fade-in 0.2s ease-in;
+  /* Ensure overlay is contained within the post element */
+  isolation: isolate;
 }
 
 /* Dark mode adaptation */
