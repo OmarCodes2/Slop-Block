@@ -69,7 +69,60 @@ function generatePostKey(postElement, postText) {
 }
 
 /**
+ * Check if a post is an activity post (someone reacting to another's post)
+ * 
+ * @param {Element} postElement - The post DOM element
+ * @returns {boolean} True if this is an activity post
+ */
+function isActivityPost(postElement) {
+  // Look for activity indicators in the header
+  const headerTextElement = postElement.querySelector('.update-components-header__text-view');
+  if (!headerTextElement) {
+    return false;
+  }
+  
+  const headerText = (headerTextElement.innerText || headerTextElement.textContent || '').toLowerCase();
+  
+  // Check for activity phrases
+  const activityPhrases = [
+    'celebrates this',
+    'likes this',
+    'comments on this',
+    'supports this',
+    'loves this',
+    'insights this'
+  ];
+  
+  return activityPhrases.some(phrase => headerText.includes(phrase));
+}
+
+/**
+ * Extract the reactor's name from an activity post
+ * 
+ * @param {Element} postElement - The post DOM element
+ * @returns {string|null} The reactor's name or null if not found
+ */
+function extractReactorName(postElement) {
+  const headerTextElement = postElement.querySelector('.update-components-header__text-view');
+  if (!headerTextElement) {
+    return null;
+  }
+  
+  // Find the first link in the header (usually the reactor's profile)
+  const reactorLink = headerTextElement.querySelector('a[href*="/in/"]');
+  if (reactorLink) {
+    const name = (reactorLink.innerText || reactorLink.textContent || '').trim();
+    if (name) {
+      return name;
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Extract post text from a post element
+ * For activity posts, extracts the original post text (not the activity header)
  * 
  * @param {Element} postElement - The post DOM element
  * @returns {string} The extracted post text
@@ -85,7 +138,10 @@ function extractPostText(postElement) {
     '.feed-shared-text',
     '.feed-shared-update__description',
     'article .feed-shared-text',
-    '[role="article"] .feed-shared-text'
+    '[role="article"] .feed-shared-text',
+    // For activity posts, the text is in the update-components-text
+    '.update-components-text',
+    '.feed-shared-inline-show-more-text'
   ];
 
   for (const selector of textSelectors) {
@@ -93,14 +149,29 @@ function extractPostText(postElement) {
     if (element) {
       const text = element.innerText || element.textContent || '';
       if (text.trim().length > 0) {
+        // For activity posts, make sure we're not including the activity header text
+        // The text should be from the original post content, not the "X celebrates this" part
         return text.trim();
       }
     }
   }
 
-  // Fallback: get all text from article
+  // Fallback: get all text from article, but exclude activity header if present
   const article = postElement.closest('article') || postElement;
-  const text = article.innerText || article.textContent || '';
+  let text = article.innerText || article.textContent || '';
+  
+  // If this is an activity post, try to exclude the header text
+  if (isActivityPost(postElement)) {
+    const headerTextElement = postElement.querySelector('.update-components-header__text-view');
+    if (headerTextElement) {
+      const headerText = headerTextElement.innerText || headerTextElement.textContent || '';
+      // Remove the header text from the beginning if it appears there
+      if (text.startsWith(headerText.trim())) {
+        text = text.substring(headerText.trim().length).trim();
+      }
+    }
+  }
+  
   return text.trim();
 }
 
@@ -155,6 +226,7 @@ function handleClassificationResult(postElement, postKey, response) {
 
 /**
  * Process a single post element
+ * Handles both regular posts and activity posts (where someone reacts to another's post)
  * 
  * @param {Element} postElement - The post DOM element
  */
@@ -164,7 +236,10 @@ function processPost(postElement) {
     return;
   }
 
-  // Extract post text
+  // Check if this is an activity post (someone reacting to another's post)
+  const isActivity = isActivityPost(postElement);
+  
+  // Extract post text (for activity posts, this extracts the original post text)
   const postText = extractPostText(postElement);
   if (!postText || postText.length < 10) {
     // Skip posts with insufficient text
@@ -186,7 +261,8 @@ function processPost(postElement) {
     return;
   }
 
-  // Apply local heuristics
+  // Apply local heuristics to the original post text
+  // For activity posts, we check the original post content, not the activity header
   const localDecision = window.LinkedInFilter.applyLocalHeuristics(postText);
 
   if (localDecision === 'keep') {
@@ -243,7 +319,12 @@ function findPostElements(container = document) {
 
   if (posts.length === 0) {
     // Last resort: known classnames (may break when LinkedIn changes them)
-    posts = Array.from(container.querySelectorAll('.feed-shared-update-v2, .feed-shared-update-v2__description'));
+    // Include activity post containers
+    posts = Array.from(container.querySelectorAll(
+      '.feed-shared-update-v2, ' +
+      '.feed-shared-update-v2__description, ' +
+      '.feed-shared-update-v2__control-menu-container'
+    ));
   }
 
   // Filter out any posts that are in header/navigation areas
