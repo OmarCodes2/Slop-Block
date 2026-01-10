@@ -156,7 +156,7 @@ function scanForPostArticles(root) {
       // Child prodigy post - block if showChildProdigy is false
       shouldBlock = !filterSettings.showChildProdigy;
     } else {
-      // Unsure - block by default (conservative approach)
+      // New categories and "other" - block by default (no toggles for these)
       shouldBlock = true;
     }
     
@@ -171,7 +171,7 @@ function scanForPostArticles(root) {
  * 
  * @param {Element} postElement - The post article element
  * @param {string} urn - The URN identifier
- * @param {string} classification - The classification result: "hired_announcement", "grindset", "ai_doomer", "child_prodigy", or "unsure"
+ * @param {string} classification - The classification result
  */
 function blockPost(postElement, urn, classification) {
   // Skip if user has already revealed this post
@@ -191,7 +191,7 @@ function blockPost(postElement, urn, classification) {
   postElement.currentPostKey = urn;
   
   // Determine label based on classification
-  let label = "Unsure";
+  let label = "Other";
   if (classification === "hired_announcement") {
     label = "Hired announcement";
   } else if (classification === "grindset") {
@@ -200,6 +200,22 @@ function blockPost(postElement, urn, classification) {
     label = "AI Doomer";
   } else if (classification === "child_prodigy") {
     label = "Child Prodigy Flex";
+  } else if (classification === "ads") {
+    label = "Sponsored/Ad";
+  } else if (classification === "sales_pitch") {
+    label = "Sales Pitch";
+  } else if (classification === "job_seeking") {
+    label = "Job Seeking";
+  } else if (classification === "events") {
+    label = "Event/Webinar";
+  } else if (classification === "engagement_bait") {
+    label = "Engagement Bait";
+  } else if (classification === "educational") {
+    label = "Educational/Tips";
+  } else if (classification === "project_launch") {
+    label = "Project Launch";
+  } else if (classification === "congrats") {
+    label = "Congrats/Cert";
   }
   
   // Apply the existing overlay/blur UI with the label
@@ -452,6 +468,7 @@ async function reEvaluateAllPosts() {
     } else if (classification === "child_prodigy") {
       shouldBlock = !filterSettings.showChildProdigy;
     } else {
+      // New categories and "other" - block by default (no toggles for these)
       shouldBlock = true;
     }
     
