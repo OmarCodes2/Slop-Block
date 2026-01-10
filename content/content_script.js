@@ -12,6 +12,44 @@
 const processedUrns = new Set(); // URNs we've already processed
 const blockedUrns = new Set(); // URNs that are currently blocked
 
+// Filter settings
+let filterSettings = {
+  showHiringPosts: true,
+  showJobAnnouncements: true,
+  showGrindset: true,
+  showAiDoomer: true,
+  showChildProdigy: true
+};
+
+/**
+ * Load filter settings from storage
+ */
+async function loadFilterSettings() {
+  try {
+    const result = await chrome.storage.sync.get(['showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy']);
+    filterSettings = {
+      showHiringPosts: result.showHiringPosts !== undefined ? result.showHiringPosts : true,
+      showJobAnnouncements: result.showJobAnnouncements !== undefined ? result.showJobAnnouncements : true,
+      showGrindset: result.showGrindset !== undefined ? result.showGrindset : true,
+      showAiDoomer: result.showAiDoomer !== undefined ? result.showAiDoomer : true,
+      showChildProdigy: result.showChildProdigy !== undefined ? result.showChildProdigy : true
+    };
+  } catch (error) {
+    console.error('[LinkedIn Filter] Error loading settings:', error);
+    // Use defaults
+    filterSettings = {
+      showHiringPosts: true,
+      showJobAnnouncements: true,
+      showGrindset: true,
+      showAiDoomer: true,
+      showChildProdigy: true
+    };
+  }
+}
+
+// Load settings on initialization
+loadFilterSettings();
+
 /**
  * Extract activity URN from an element
  * Returns the data-urn if it's a valid activity URN, else null
@@ -96,8 +134,35 @@ function scanForPostArticles(root) {
     // Mark as processed immediately to prevent double-processing
     processedUrns.add(urn);
     
-    // Block the post
-    blockPost(article, urn);
+    // Classify the post
+    const classification = window.LinkedInFilter.classifyPost(article);
+    
+    // Check if we should block based on classification and settings
+    let shouldBlock = false;
+    
+    if (classification === "allow") {
+      // Hiring post - block if showHiringPosts is false
+      shouldBlock = !filterSettings.showHiringPosts;
+    } else if (classification === "hired_announcement") {
+      // Job announcement - block if showJobAnnouncements is false
+      shouldBlock = !filterSettings.showJobAnnouncements;
+    } else if (classification === "grindset") {
+      // Grindset post - block if showGrindset is false
+      shouldBlock = !filterSettings.showGrindset;
+    } else if (classification === "ai_doomer") {
+      // AI doomer post - block if showAiDoomer is false
+      shouldBlock = !filterSettings.showAiDoomer;
+    } else if (classification === "child_prodigy") {
+      // Child prodigy post - block if showChildProdigy is false
+      shouldBlock = !filterSettings.showChildProdigy;
+    } else {
+      // Unsure - block by default (conservative approach)
+      shouldBlock = true;
+    }
+    
+    if (shouldBlock) {
+      blockPost(article, urn, classification);
+    }
   }
 }
 
@@ -106,8 +171,9 @@ function scanForPostArticles(root) {
  * 
  * @param {Element} postElement - The post article element
  * @param {string} urn - The URN identifier
+ * @param {string} classification - The classification result: "hired_announcement", "grindset", "ai_doomer", "child_prodigy", or "unsure"
  */
-function blockPost(postElement, urn) {
+function blockPost(postElement, urn, classification) {
   // Skip if user has already revealed this post
   if (window.LinkedInFilter.userRevealed.has(urn)) {
     return;
@@ -124,8 +190,20 @@ function blockPost(postElement, urn) {
   // Store URN on element for reveal functionality
   postElement.currentPostKey = urn;
   
-  // Apply the existing overlay/blur UI
-  window.LinkedInFilter.blurPost(postElement, false);
+  // Determine label based on classification
+  let label = "Unsure";
+  if (classification === "hired_announcement") {
+    label = "Hired announcement";
+  } else if (classification === "grindset") {
+    label = "LinkedIn Grindset Final Boss";
+  } else if (classification === "ai_doomer") {
+    label = "AI Doomer";
+  } else if (classification === "child_prodigy") {
+    label = "Child Prodigy Flex";
+  }
+  
+  // Apply the existing overlay/blur UI with the label
+  window.LinkedInFilter.blurPost(postElement, false, label);
 }
 
 /**
@@ -333,3 +411,76 @@ history.replaceState = function(...args) {
   originalReplaceState.apply(history, args);
   setTimeout(() => reinitializeFeedObserver(), 500);
 };
+
+/**
+ * Re-evaluate all posts when settings change
+ */
+async function reEvaluateAllPosts() {
+  // Reload settings
+  await loadFilterSettings();
+  
+  // Find all currently visible posts
+  const feedContainer = findFeedContainer();
+  if (!feedContainer) return;
+  
+  // Re-scan all articles
+  const articles = feedContainer.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"]');
+  
+  for (const article of articles) {
+    const urn = article.getAttribute('data-urn');
+    if (!urn) continue;
+    
+    // Skip if user has manually revealed this post
+    if (window.LinkedInFilter.userRevealed.has(urn)) {
+      continue;
+    }
+    
+    // Re-classify the post
+    const classification = window.LinkedInFilter.classifyPost(article);
+    
+    // Determine if we should block based on settings
+    let shouldBlock = false;
+    
+    if (classification === "allow") {
+      shouldBlock = !filterSettings.showHiringPosts;
+    } else if (classification === "hired_announcement") {
+      shouldBlock = !filterSettings.showJobAnnouncements;
+    } else if (classification === "grindset") {
+      shouldBlock = !filterSettings.showGrindset;
+    } else if (classification === "ai_doomer") {
+      shouldBlock = !filterSettings.showAiDoomer;
+    } else if (classification === "child_prodigy") {
+      shouldBlock = !filterSettings.showChildProdigy;
+    } else {
+      shouldBlock = true;
+    }
+    
+    const isCurrentlyBlocked = article.classList.contains('linkedin-filter-blurred');
+    
+    if (shouldBlock && !isCurrentlyBlocked) {
+      // Need to block this post
+      blockPost(article, urn, classification);
+    } else if (!shouldBlock && isCurrentlyBlocked) {
+      // Need to unblock this post (but don't mark as user-revealed)
+      const overlays = article.querySelectorAll('.linkedin-filter-overlay');
+      overlays.forEach(overlay => {
+        if (overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      });
+      article.classList.remove('linkedin-filter-blurred');
+      blockedUrns.delete(urn);
+    }
+  }
+}
+
+// Listen for settings changes from popup
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'settingsChanged') {
+    filterSettings = message.settings || filterSettings;
+    // Re-evaluate all posts with new settings
+    reEvaluateAllPosts();
+    sendResponse({ success: true });
+  }
+  return true;
+});

@@ -18,8 +18,9 @@ window.LinkedInFilter.userRevealed = new Set(); // URNs (postKeys) that user has
  * 
  * @param {Element} postElement - The post DOM element
  * @param {boolean} isPending - Whether this is a pending (AI-classifying) post
+ * @param {string} label - The label to display: "Hired announcement" or "Unsure"
  */
-window.LinkedInFilter.blurPost = function(postElement, isPending = false) {
+window.LinkedInFilter.blurPost = function(postElement, isPending = false, label = "Unsure") {
   // Don't blur if already blurred or if user has revealed it
   if (postElement.classList.contains('linkedin-filter-blurred')) {
     return;
@@ -39,7 +40,7 @@ window.LinkedInFilter.blurPost = function(postElement, isPending = false) {
   overlay.innerHTML = `
     <div class="linkedin-filter-message">
       <h3 class="linkedin-filter-title">Post Blocked</h3>
-      <p class="linkedin-filter-subtitle">This post has been blocked. You can reveal it anytime.</p>
+      <p class="linkedin-filter-subtitle">${label}</p>
       <button class="linkedin-filter-reveal-button">Reveal Post</button>
     </div>
   `;

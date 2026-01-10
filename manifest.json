@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "LinkedIn Feed Filter",
+  "name": "Slop Block",
   "version": "1.0.0",
   "description": "Filters LinkedIn feed to show only recruiter hiring posts with hybrid classification (local heuristics + AI).",
   "permissions": [
@@ -35,5 +35,9 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Slop Block"
   }
 }
