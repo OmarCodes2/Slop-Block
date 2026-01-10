@@ -9,292 +9,506 @@ window.LinkedInFilter = window.LinkedInFilter || {};
 
 // Phrase lists for classification
 const GUARANTEED_HIRING_PHRASES = [
-  // explicit hiring
-  "we are hiring","we're hiring","we are now hiring","we're now hiring",
-  "we are currently hiring","we're currently hiring","we are actively hiring","we're actively hiring",
-  "hiring now","now hiring","currently hiring","actively hiring","hiring immediately","hiring urgently",
-  "immediate hire","urgent hiring","hiring asap","asap hire","fast hire",
-
-  // open roles / openings / positions
-  "open role","open roles","roles open","role open","roles available","role available",
-  "open position","open positions","positions open","position open","positions available","position available",
-  "job opening","job openings","opening available","openings available",
-  "vacancy","vacancies","open vacancy","open vacancies",
-
-  // recruiting language
-  "we're recruiting","we are recruiting","recruiting now","currently recruiting","actively recruiting",
-  "recruiting for","hiring for","staffing for","building out the team","expanding the team",
-  "growing the team","team expansion","scaling the team","headcount approved","new headcount",
-
-  // role request / JD
-  "job description","jd in comments","jd below","jd attached","role description",
-  "requirements include","responsibilities include","must have experience","nice to have",
-
-  // direct call to apply
-  "apply now","apply today","apply here","apply below","apply above",
-  "apply via","apply through","apply on","apply using","submit your application","submit application",
-  "application link","apply link","link to apply","apply in comments","apply in the comments",
-  "send your resume","send resume","send your cv","send cv",
-  "email your resume","email resume","email your cv","email cv",
-  "dm me your resume","dm me resume","message me your resume","send me your resume",
-  "dm me your cv","message me your cv",
-  "drop your resume","drop resume","share your resume","share resume",
-  "forward your resume","forward resume",
-  "reach out with your resume","reach out with your cv",
-
-  // "looking for" patterns (still hiring-ish)
-  "we're looking for","we are looking for","we're seeking","we are seeking","in search of",
-  "we need a","we need an","we're adding a","we are adding a",
-  "looking to hire","seeking to hire","looking to recruit","seeking to recruit",
-
-  // referrals / internal recruiting
-  "referrals welcome","referral welcome","referral bonus","employee referral","please refer",
-  "if you know someone","know someone who","tag someone who","share with someone",
-  "send me a referral","open requisition","open req","req id","requisition id",
-
-  // contractors / freelance
-  "contract role","contract position","freelance role","freelance position","short-term contract",
-  "part-time role","part time role","full-time role","full time role","internship opening","internship role",
-
-  // hashtags (huge coverage)
-  "#hiring","#werehiring","#wearehiring","#jobopening","#jobopenings","#openroles","#recruiting",
-  "#careers","#careerservice","#vacancy","#vacancies"
-];
-
-const GUARANTEED_HIRING_REGEX = [
-  /\bwe\s*(are|'re)\s*(actively\s*)?hiring\b/i,
-  /\b(now|currently|actively)\s+hiring\b/i,
-  /\b(open|available)\s+(roles?|positions?|openings?)\b/i,
-  /\bapply\s+(here|now|today|below|above|via|through)\b/i,
-  /\b(dm|inbox|message)\s+me\s+(your\s+)?(resume|cv)\b/i,
-  /\b(email)\s+(me\s+)?(your\s+)?(resume|cv)\b/i,
-  /\breferrals?\s+(welcome|needed)\b/i,
-  /\b(req(uisition)?\s*(id|#)?\s*[:#]?\s*\w+)\b/i
+  // "we are hiring" variations
+  "we are hiring",
+  "we're hiring",
+  "we are currently hiring",
+  "we're currently hiring",
+  "we are actively hiring",
+  "we're actively hiring",
+  "we are now hiring",
+  "we're now hiring",
+  // "now hiring" variations
+  "now hiring",
+  "hiring now",
+  "currently hiring",
+  "hiring today",
+  "hiring asap",
+  "hiring urgently",
+  // "hiring immediately" variations
+  "hiring immediately",
+  "hiring right now",
+  "hiring asap",
+  "hiring urgently",
+  // "actively hiring" variations
+  "actively hiring",
+  "actively recruiting",
+  "actively seeking",
+  "actively looking",
+  // "currently hiring" variations
+  "currently hiring",
+  "currently recruiting",
+  "currently seeking",
+  "currently looking",
+  // "open roles" variations
+  "open roles",
+  "open role",
+  "roles available",
+  "role available",
+  "roles open",
+  "role open",
+  "positions open",
+  "position open",
+  // "open positions" variations
+  "open positions",
+  "open position",
+  "positions available",
+  "position available",
+  "positions open",
+  "position open",
+  // "job openings" variations
+  "job openings",
+  "job opening",
+  "openings available",
+  "opening available",
+  "jobs available",
+  "job available",
+  // "vacancies available" variations
+  "vacancies available",
+  "vacancy available",
+  "vacancies",
+  "vacancy",
+  "open vacancies",
+  "open vacancy",
+  // "apply here" variations
+  "apply here",
+  "apply at",
+  "apply via",
+  "apply through",
+  "apply on",
+  // "apply now" variations
+  "apply now",
+  "apply today",
+  "apply immediately",
+  "apply asap",
+  // "apply below" variations
+  "apply below",
+  "apply above",
+  "apply in comments",
+  "apply in the comments",
+  // "submit your application" variations
+  "submit your application",
+  "submit application",
+  "send application",
+  "send your application",
+  "submit an application",
+  "send an application",
+  // "send your resume" variations
+  "send your resume",
+  "send resume",
+  "send your cv",
+  "send cv",
+  "share your resume",
+  "share resume",
+  "share your cv",
+  "share cv",
+  "forward your resume",
+  "forward resume",
+  // "send your cv" variations
+  "send your cv",
+  "send cv",
+  "send your resume",
+  "share your cv",
+  "share cv",
+  // "drop your resume" variations
+  "drop your resume",
+  "drop resume",
+  "drop your cv",
+  "drop cv",
+  "share your resume",
+  // "dm me your resume" variations
+  "dm me your resume",
+  "dm your resume",
+  "message me your resume",
+  "send me your resume",
+  "dm me resume",
+  "message me resume",
+  "dm me your cv",
+  "message me your cv",
+  // "email your resume" variations
+  "email your resume",
+  "email resume",
+  "email your cv",
+  "email cv",
+  "send email with resume",
+  "send email with cv",
+  // "link to apply" variations
+  "link to apply",
+  "application link",
+  "apply link",
+  "link for application",
+  "link for apply",
+  "application url",
+  "apply url",
+  // "application link" variations
+  "application link",
+  "apply link",
+  "link to apply",
+  "link for application",
+  // "join our team" variations
+  "join our team",
+  "join us",
+  "become part of our team",
+  "join the team",
+  "come join our team",
+  "come join us",
+  "we want you to join",
+  "we'd love you to join",
+  // "hiring a" variations
+  "hiring a",
+  "hiring an",
+  "looking to hire a",
+  "looking to hire an",
+  "seeking to hire a",
+  "seeking to hire an",
+  // "looking for a" variations
+  "looking for a",
+  "looking for an",
+  "seeking a",
+  "seeking an",
+  "in search of a",
+  "in search of an",
+  "searching for a",
+  "searching for an",
+  // "seeking a" variations
+  "seeking a",
+  "seeking an",
+  "looking for a",
+  "looking for an",
+  // "recruiting for" variations
+  "recruiting for",
+  "recruiting a",
+  "recruiting an",
+  "hiring for",
+  "looking to recruit",
+  "seeking to recruit",
+  // "we're adding a" variations
+  "we're adding a",
+  "we are adding a",
+  "adding a",
+  "adding an",
+  "we're adding an",
+  "we are adding an",
+  "we're looking to add a",
+  "we are looking to add a",
+  "we're looking to add an",
+  "we are looking to add an"
 ];
 
 const GUARANTEED_HIRED_ANNOUNCEMENT_PHRASES = [
-  // announce/share templates
-  "i'm excited to announce","i am excited to announce","excited to announce",
-  "i'm thrilled to announce","i am thrilled to announce","thrilled to announce",
-  "i'm happy to announce","i am happy to announce","happy to announce",
-  "i'm pleased to announce","i am pleased to announce","pleased to announce",
-  "i'm delighted to announce","i am delighted to announce","delighted to announce",
-
-  "excited to share","thrilled to share","happy to share","proud to share","pleased to share",
-  "excited to share that i","thrilled to share that i","happy to share that i","proud to share that i",
-
-  // accepted / joining / starting
-  "i've accepted","i have accepted","accepted an offer","offer accepted",
-  "grateful to accept","honored to accept","excited to accept","thrilled to accept",
-  "i'm joining","i am joining","i'll be joining","i will be joining","will be joining",
-  "joining the team","joining the team at","joining the team of",
-  "starting a new role","starting my new role","starting a new position","starting my new position",
-  "starting a new job","starting my new job",
-  "beginning a new role","beginning my new role","beginning a new position","beginning my new position",
-  "officially starting","officially starting at","officially beginning",
-  "excited to start","thrilled to start","excited to begin","thrilled to begin",
-  "can't wait to start","cant wait to start","can't wait to begin","cant wait to begin",
-
-  // role title style
-  "i'm starting as","i am starting as","i'll be starting as","i will be starting as",
-  "i'm joining as","i am joining as","i'll be joining as","i will be joining as",
-  "i'm excited to start as","i am excited to start as",
-
-  // new chapter language
-  "new chapter","next chapter","new journey","next journey","new adventure",
-  "beginning my journey","starting my journey",
-  "super excited to","beyond excited to","incredibly excited to",
-  "humbled to","honored to","grateful for this opportunity",
-
-  // internship/co-op wording (very common)
-  "i'm excited to share that i'll be interning","i am excited to share that i will be interning",
-  "i'll be interning at","i will be interning at","excited to intern at",
-  "starting my internship at","beginning my internship at",
-  "co-op at","interning at","summer intern at","incoming intern",
-  "incoming software engineer intern","incoming swe intern","incoming intern at",
-
-  // hashtags
-  "#newrole","#newjob","#newposition","#grateful","#excited","#internship","#intern",
-  "#incomingintern","#startingsoon"
-];
-
-const GUARANTEED_HIRED_ANNOUNCEMENT_REGEX = [
-  /\b(i\s*(am|'m)\s*)?(excited|thrilled|happy|pleased|delighted|proud)\s+to\s+(announce|share)\b/i,
-  /\b(accepted|accepting)\s+(an\s+)?offer\b/i,
-  /\b(joining|starting|beginning)\s+(a\s+)?new\s+(role|job|position)\b/i,
-  /\b(i\s*(am|'m)|i\s+will|i\s*'ll)\s+be\s+(joining|starting|beginning)\b/i,
-  /\b(incoming)\s+\w+\s+(intern|co-?op)\b/i
+  // "i'm excited to announce" variations
+  "i'm excited to announce",
+  "i am excited to announce",
+  "excited to announce",
+  "i'm thrilled to announce",
+  "i am thrilled to announce",
+  "thrilled to announce",
+  "i'm happy to announce",
+  "i am happy to announce",
+  "happy to announce",
+  "i'm pleased to announce",
+  "i am pleased to announce",
+  "pleased to announce",
+  "i'm delighted to announce",
+  "i am delighted to announce",
+  "delighted to announce",
+  // "thrilled to announce" variations
+  "thrilled to announce",
+  "excited to announce",
+  "happy to announce",
+  "pleased to announce",
+  "delighted to announce",
+  // "happy to announce" variations
+  "happy to announce",
+  "excited to announce",
+  "thrilled to announce",
+  "pleased to announce",
+  "glad to announce",
+  // "excited to share that i" variations
+  "excited to share that i",
+  "thrilled to share that i",
+  "happy to share that i",
+  "proud to share that i",
+  "pleased to share that i",
+  "excited to share",
+  "thrilled to share",
+  "happy to share",
+  // "i'm happy to share" variations
+  "i'm happy to share",
+  "i am happy to share",
+  "i'm excited to share",
+  "i am excited to share",
+  "i'm thrilled to share",
+  "i am thrilled to share",
+  "happy to share",
+  "excited to share",
+  "thrilled to share",
+  // "grateful to accept" variations
+  "grateful to accept",
+  "honored to accept",
+  "excited to accept",
+  "thrilled to accept",
+  "happy to accept",
+  "pleased to accept",
+  // "proud to announce that i" variations
+  "proud to announce that i",
+  "excited to announce that i",
+  "thrilled to announce that i",
+  "happy to announce that i",
+  "pleased to announce that i",
+  "proud to announce",
+  // "pleased to announce that i" variations
+  "pleased to announce that i",
+  "excited to announce that i",
+  "happy to announce that i",
+  "thrilled to announce that i",
+  "pleased to announce",
+  // "i've accepted an offer" variations
+  "i've accepted an offer",
+  "i have accepted an offer",
+  "accepted an offer",
+  "i've taken an offer",
+  "i have taken an offer",
+  "took an offer",
+  "i've received an offer",
+  "i have received an offer",
+  "received an offer",
+  // "i have accepted an offer" variations
+  "i have accepted an offer",
+  "i've accepted an offer",
+  "accepted an offer",
+  "i have taken an offer",
+  "i've taken an offer",
+  // "accepted an offer at" variations
+  "accepted an offer at",
+  "accepted an offer from",
+  "took an offer at",
+  "took an offer from",
+  "accepted offer at",
+  "accepted offer from",
+  // "starting a new role at" variations
+  "starting a new role at",
+  "starting new role at",
+  "beginning a new role at",
+  "beginning new role at",
+  "starting my new role at",
+  "beginning my new role at",
+  "starting a new position at",
+  "beginning a new position at",
+  // "joining the team at" variations
+  "joining the team at",
+  "joining team at",
+  "joining the team of",
+  "joining team of",
+  "joining a team at",
+  "joining a team of",
+  // "i'm joining" variations
+  "i'm joining",
+  "i am joining",
+  "joining",
+  "will be joining",
+  "i'm going to join",
+  "i am going to join",
+  "i'll be joining",
+  "i will be joining",
+  // "i am joining" variations
+  "i am joining",
+  "i'm joining",
+  "joining",
+  "will be joining",
+  // "officially starting at" variations
+  "officially starting at",
+  "starting at",
+  "beginning at",
+  "officially beginning at",
+  "officially starting",
+  // "i'll be starting at" variations
+  "i'll be starting at",
+  "i will be starting at",
+  "starting at",
+  "beginning at",
+  "i'll be beginning at",
+  "i will be beginning at",
+  // "i will be starting at" variations
+  "i will be starting at",
+  "i'll be starting at",
+  "starting at",
+  "beginning at",
+  // "excited to start at" variations
+  "excited to start at",
+  "thrilled to start at",
+  "happy to start at",
+  "proud to start at",
+  "pleased to start at",
+  "excited to begin at",
+  "thrilled to begin at",
+  // "thrilled to start at" variations
+  "thrilled to start at",
+  "excited to start at",
+  "happy to start at",
+  "proud to start at",
+  // "beginning my journey at" variations
+  "beginning my journey at",
+  "starting my journey at",
+  "beginning journey at",
+  "starting journey at",
+  "beginning a new journey at",
+  "starting a new journey at",
+  // "will be joining" variations
+  "will be joining",
+  "joining",
+  "will join",
+  "am joining",
+  "i'm joining",
+  "i am joining",
+  "i'll be joining",
+  "i will be joining",
+  // Additional common variations
+  "new role",
+  "new position",
+  "new job",
+  "starting my new job",
+  "beginning my new job",
+  "accepted a position",
+  "accepted a role",
+  "took a position",
+  "took a role",
+  "starting my career at",
+  "beginning my career at",
+  "excited to join",
+  "thrilled to join",
+  "happy to join",
+  "proud to join"
 ];
 
 const GUARANTEED_GRINDSET_PHRASES = [
-  "rise and grind","grindset","sigma grindset","alpha mindset",
-  "while you were sleeping","while you slept","no days off","no weekends",
-  "work harder","outwork everyone","outwork the competition","stay hard",
-  "discipline equals freedom","discipline > motivation","motivation is temporary",
-  "nobody cares work harder","do it tired","sleep is for the weak",
-  "the grind never stops","hustle never stops","obsessed","be obsessed",
-  "4am","4 am","5am","5 am","4am club","5am club",
-  "cold shower","cold showers","two a days","double sessions",
-  "lock in","locked in","locking in","locked tf in",
-  "grind harder","hustle harder","keep grinding",
-  "i don't take days off","i dont take days off",
-  "work while they sleep","work when they sleep",
-  "you have the same 24 hours","24 hours"
-];
-
-const GUARANTEED_GRINDSET_REGEX = [
-  /\b(rise\s+and\s+grind|grindset)\b/i,
-  /\b(no\s+days?\s+off|no\s+weekends?)\b/i,
-  /\b(outwork|hustle|grind)\b/i,
-  /\b(4|5)\s*:?00?\s*(am)?\b/i
+  "while you were sleeping",
+  "while you slept",
+  "4am wakeup",
+  "4 am wakeup",
+  "4:00am wakeup",
+  "4:00 am wakeup",
+  "5am wakeup",
+  "5 am wakeup",
+  "5:00am wakeup",
+  "5:00 am wakeup",
+  "wake up at 4am",
+  "wake up at 4 am",
+  "wake up at 5am",
+  "wake up at 5 am",
+  "4am club",
+  "4 am club",
+  "5am club",
+  "5 am club",
+  "cold shower",
+  "cold showers",
+  "no weekends",
+  "no days off",
+  "grind never stops",
+  "hustle never stops",
+  "sleep is for the weak",
+  "wake up while you sleep",
+  "while you were sleeping i was",
+  "no days off grind",
+  "no weekend grind"
 ];
 
 const GUARANTEED_AI_DOOMER_PHRASES = [
-  "swe is dead","software engineering is dead","coding is dead","programming is dead",
-  "stop learning to code","don't learn to code","do not learn to code",
-  "ai will replace developers","ai will replace engineers","ai will replace programmers",
-  "ai will replace all developers","ai will replace all engineers","ai will replace all programmers",
-  "developers are obsolete","engineers are obsolete","programmers are obsolete",
-  "developers are finished","engineering is over","software engineering is over",
-  "juniors are cooked","junior devs are cooked","entry level is dead","entry-level is dead",
-  "no one will hire juniors","no junior roles","junior roles are gone",
-  "agents will replace","ai agents will replace","llms will replace",
-  "prompt engineering is the future","become a prompt engineer",
-  "ai writes better code","ai can do it faster","replace the whole team",
-  "your job will be automated","automation will replace you"
-];
-
-const GUARANTEED_AI_DOOMER_REGEX = [
-  /\b(swe|software\s+engineering|programming|coding)\s+(is\s+)?(dead|over)\b/i,
-  /\b(ai|llm|agents?)\s+will\s+replace\b/i,
-  /\b(juniors?|entry\s*-?\s*level)\s+(are\s+)?(cooked|dead|gone)\b/i,
-  /\b(stop|dont|don't)\s+learn(ing)?\s+to\s+code\b/i
+  "swe is dead",
+  "software engineering is dead",
+  "stop learning to code",
+  "don't learn to code",
+  "do not learn to code",
+  "coding is dead",
+  "programming is dead",
+  "developers are obsolete",
+  "engineers are obsolete",
+  "programmers are obsolete",
+  "ai will replace all developers",
+  "ai will replace all engineers",
+  "ai will replace all programmers",
+  "ai will replace every developer",
+  "ai will replace every engineer",
+  "ai will replace every programmer",
+  "coding is pointless",
+  "learning to code is pointless",
+  "all developers will be replaced",
+  "all engineers will be replaced",
+  "all programmers will be replaced",
+  "every developer will be replaced",
+  "every engineer will be replaced",
+  "every programmer will be replaced",
+  "developers are finished",
+  "engineers are finished",
+  "programmers are finished",
+  "software engineering is over",
+  "coding is over",
+  "programming is over"
 ];
 
 const GUARANTEED_CHILD_PRODIGY_PHRASES = [
-  "high schooler built","high schooler created","high schooler founded","high schooler launched",
-  "middle schooler built","middle schooler created","teenager built","teen built","teen founded",
-  "teen founder","teen ceo","teenage founder","teenage ceo",
-  "high school founder","high school ceo","middle school founder","middle school ceo",
-  "in high school i","when i was 15","when i was 16","when i was 17","at 15 i","at 16 i","at 17 i",
-  "15-year-old","16-year-old","17-year-old","14-year-old","13-year-old","12-year-old",
-  "15 year old","16 year old","17 year old","14 year old","13 year old","12 year old",
-  "i'm 15","i am 15","i'm 16","i am 16","i'm 17","i am 17",
-  "grade 9","grade 10","grade 11","grade 12",
-  "freshman in high school","sophomore in high school","junior in high school","senior in high school",
-  "student founder at 16","started at 16","shipped at 16","raised at 16"
-];
-
-const GUARANTEED_CHILD_PRODIGY_REGEX = [
-  /\b(1[2-7])\s*[- ]?\s*year\s*[- ]?\s*old\b/i,
-  /\b(i\s*(am|'m))\s*(1[2-7])\b/i,
-  /\b(grade\s*(9|10|11|12))\b/i,
-  /\b(high\s+school(er)?|middle\s+school(er)?)\b/i
-];
-
-// New categories (classification only, no toggles)
-const ADS_SPONSORED_PHRASES = [
-  "promoted","sponsored","learn more","sign up","register now","download","get the guide",
-  "free trial","start your free trial","request a demo","book a demo","limited time","offer"
-];
-
-const ADS_SPONSORED_REGEX = [
-  /\b(promoted|sponsored)\b/i,
-  /\b(book|request)\s+(a\s+)?demo\b/i,
-  /\b(start|claim)\s+(your\s+)?(free\s+)?trial\b/i
-];
-
-const SALES_PITCH_PHRASES = [
-  "book a call","dm me","inbox me","message me","calendar link","limited spots",
-  "clients","case study","roi","pipeline","my course","my program","cohort",
-  "newsletter","subscribe","waitlist","join the waitlist"
-];
-
-const SALES_PITCH_REGEX = [
-  /\b(dm|inbox)\s+me\b/i,
-  /\bbook\s+(a\s+)?call\b/i,
-  /\b(waitlist|cohort|program)\b/i
-];
-
-const JOB_SEEKING_PHRASES = [
-  "open to work","#opentowork","looking for new opportunities","seeking new opportunities",
-  "actively looking","any leads","please share","referral",
-  "laid off","layoff","impacted by layoffs","my role was eliminated","position eliminated"
-];
-
-const JOB_SEEKING_REGEX = [
-  /\b(open\s+to\s+work|#opentowork)\b/i,
-  /\b(laid\s+off|layoffs?)\b/i,
-  /\b(role|position)\s+(was\s+)?(eliminated|impacted)\b/i
-];
-
-const EVENT_WEBINAR_PHRASES = [
-  "webinar","workshop","live session","panel","fireside chat","conference","summit",
-  "register","registration","save your spot","save the date","speaker","speaking at"
-];
-
-const EVENT_WEBINAR_REGEX = [
-  /\b(save the date)\b/i,
-  /\b(register|registration)\b/i,
-  /\b(speaking at|speaker)\b/i
-];
-
-const ENGAGEMENT_BAIT_PHRASES = [
-  "agree?","thoughts?","what do you think?","comment below","comment '","type '",
-  "like if","share if","repost if","tag someone","follow for more","part 2",
-  "i'll send you","dm me '"
-];
-
-const ENGAGEMENT_BAIT_REGEX = [
-  /\bcomment\s+["'][^"']+["']\b/i,
-  /\bdm\s+me\s+["'][^"']+["']\b/i,
-  /\btag\s+(someone|a friend|\d+)\b/i
-];
-
-const EDUCATIONAL_TIPS_REGEX = [
-  /\b\d+\s+(tips|lessons|mistakes|steps|ways)\b/i,
-  /\b(step\s*by\s*step)\b/i,
-  /\b(here's\s+how|how\s+to)\b/i,
-  /\b(checklist|framework|template|guide|playbook)\b/i
-];
-
-const PROJECT_LAUNCH_REGEX = [
-  /\b(i|we)\s+(built|shipped|launched|released)\b/i,
-  /\b(v1|v2|beta|public beta)\b/i,
-  /\b(open\s*source|github|demo)\b/i,
-  /\b(introducing|announcing)\b/i
-];
-
-const CONGRATS_CERTS_REGEX = [
-  /\b(congrats|congratulations)\b/i,
-  /\b(certification|certificate|credential|badge)\b/i,
-  /\b(honored|humbled|grateful)\b/i
+  "high schooler built",
+  "high schooler created",
+  "high schooler founded",
+  "high schooler launched",
+  "high schooler started",
+  "high schooler developed",
+  "high schooler raised",
+  "high schooler sold",
+  "high schooler built a",
+  "high schooler created a",
+  "high schooler founded a",
+  "high schooler launched a",
+  "high schooler started a",
+  "high schooler developed a",
+  "middle schooler built",
+  "middle schooler created",
+  "middle schooler founded",
+  "middle schooler launched",
+  "middle schooler started",
+  "middle schooler developed",
+  "middle schooler built a",
+  "middle schooler created a",
+  "middle schooler founded a",
+  "middle schooler launched a",
+  "middle schooler started a",
+  "middle schooler developed a",
+  "teenager built",
+  "teenager created",
+  "teenager founded",
+  "teenager launched",
+  "teenager started",
+  "teenager developed",
+  "teenager raised",
+  "teenager sold",
+  "teenager built a",
+  "teenager created a",
+  "teenager founded a",
+  "teenager launched a",
+  "teenager started a",
+  "teenager developed a",
+  "high school founder",
+  "high school ceo",
+  "high school entrepreneur",
+  "middle school founder",
+  "middle school ceo",
+  "middle school entrepreneur",
+  "teenage founder",
+  "teenage ceo",
+  "teenage entrepreneur"
 ];
 
 /**
  * Normalize text for matching
  * - Convert to lowercase
- * - Normalize curly quotes/apostrophes
- * - Normalize dashes
- * - Remove most punctuation except # @ : / . (keep URLs/hashtags/mentions)
  * - Collapse whitespace
  * 
  * @param {string} text - The text to normalize
  * @returns {string} - Normalized text
  */
 function normalizeText(text) {
-  if (!text) return "";
-  return text
-    .toLowerCase()
-    // normalize curly quotes/apostrophes
-    .replace(/[''´`]/g, "'")
-    .replace(/[""]/g, '"')
-    // normalize dashes
-    .replace(/[—–]/g, "-")
-    // remove most punctuation except # @ : / . (keep URLs/hashtags/mentions)
-    .replace(/[^\p{L}\p{N}\s#@:/\.\-']/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  if (!text) return '';
+  return text.toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -347,137 +561,66 @@ function extractPostText(postElement) {
 }
 
 /**
- * Check if text matches any phrase in a list
- * @param {string} text - Normalized text to check
- * @param {Array<string>} phrases - Array of phrases to match
- * @returns {boolean} - True if any phrase matches
- */
-function matchesPhrases(text, phrases) {
-  for (const phrase of phrases) {
-    if (text.includes(phrase.toLowerCase())) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Check if text matches any regex in a list
- * @param {string} text - Text to check (can be original or normalized)
- * @param {Array<RegExp>} regexes - Array of regex patterns
- * @returns {boolean} - True if any regex matches
- */
-function matchesRegex(text, regexes) {
-  for (const regex of regexes) {
-    if (regex.test(text)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Classify a post based on phrase and regex matching
+ * Classify a post based on phrase matching
  * 
  * Precedence:
- * 1) If matches hiring phrases/regex → return "allow"
- * 2) Else if matches hired announcement phrases/regex → return "hired_announcement"
- * 3) Else if matches grindset phrases/regex → return "grindset"
- * 4) Else if matches AI doomer phrases/regex → return "ai_doomer"
- * 5) Else if matches child prodigy phrases/regex → return "child_prodigy"
- * 6) Else if matches ads/sponsored phrases/regex → return "ads"
- * 7) Else if matches sales pitch phrases/regex → return "sales_pitch"
- * 8) Else if matches job seeking phrases/regex → return "job_seeking"
- * 9) Else if matches events/webinars phrases/regex → return "events"
- * 10) Else if matches engagement bait phrases/regex → return "engagement_bait"
- * 11) Else if matches educational tips regex → return "educational"
- * 12) Else if matches project launch regex → return "project_launch"
- * 13) Else if matches congrats/certs regex → return "congrats"
- * 14) Else → return "other"
+ * 1) If matches hiring phrases → return "hiring"
+ * 2) Else if matches hired announcement phrases → return "hired_announcement"
+ * 3) Else if matches grindset phrases → return "grindset"
+ * 4) Else if matches AI doomer phrases → return "ai_doomer"
+ * 5) Else if matches child prodigy phrases → return "child_prodigy"
+ * 6) Else → return "unsure"
  * 
  * @param {Element} postElement - The post article element
- * @returns {string} - Classification result
+ * @returns {string} - Classification result: "hiring", "hired_announcement", "grindset", "ai_doomer", "child_prodigy", or "unsure"
  */
 window.LinkedInFilter.classifyPost = function(postElement) {
   // Extract post text
   const postText = extractPostText(postElement);
   const normalizedText = normalizeText(postText);
   
-  // Check hiring phrases and regex first (highest precedence)
-  if (matchesPhrases(normalizedText, GUARANTEED_HIRING_PHRASES) || 
-      matchesRegex(postText, GUARANTEED_HIRING_REGEX)) {
-    return "allow";
+  // Check hiring phrases first (highest precedence)
+  for (const phrase of GUARANTEED_HIRING_PHRASES) {
+    if (normalizedText.includes(phrase.toLowerCase())) {
+      // Debug: log the match
+      console.log('[LinkedIn Filter] GUARANTEED_HIRING_PHRASES match:', phrase);
+      console.log('[LinkedIn Filter] Matched text context:', 
+        normalizedText.substring(
+          Math.max(0, normalizedText.indexOf(phrase.toLowerCase()) - 50),
+          Math.min(normalizedText.length, normalizedText.indexOf(phrase.toLowerCase()) + phrase.length + 50)
+        ));
+      return "hiring";
+    }
   }
   
-  // Check hired announcement phrases and regex
-  if (matchesPhrases(normalizedText, GUARANTEED_HIRED_ANNOUNCEMENT_PHRASES) || 
-      matchesRegex(postText, GUARANTEED_HIRED_ANNOUNCEMENT_REGEX)) {
-    return "hired_announcement";
+  // Check hired announcement phrases
+  for (const phrase of GUARANTEED_HIRED_ANNOUNCEMENT_PHRASES) {
+    if (normalizedText.includes(phrase.toLowerCase())) {
+      return "hired_announcement";
+    }
   }
   
-  // Check grindset phrases and regex
-  if (matchesPhrases(normalizedText, GUARANTEED_GRINDSET_PHRASES) || 
-      matchesRegex(postText, GUARANTEED_GRINDSET_REGEX)) {
-    return "grindset";
+  // Check grindset phrases
+  for (const phrase of GUARANTEED_GRINDSET_PHRASES) {
+    if (normalizedText.includes(phrase.toLowerCase())) {
+      return "grindset";
+    }
   }
   
-  // Check AI doomer phrases and regex
-  if (matchesPhrases(normalizedText, GUARANTEED_AI_DOOMER_PHRASES) || 
-      matchesRegex(postText, GUARANTEED_AI_DOOMER_REGEX)) {
-    return "ai_doomer";
+  // Check AI doomer phrases
+  for (const phrase of GUARANTEED_AI_DOOMER_PHRASES) {
+    if (normalizedText.includes(phrase.toLowerCase())) {
+      return "ai_doomer";
+    }
   }
   
-  // Check child prodigy phrases and regex
-  if (matchesPhrases(normalizedText, GUARANTEED_CHILD_PRODIGY_PHRASES) || 
-      matchesRegex(postText, GUARANTEED_CHILD_PRODIGY_REGEX)) {
-    return "child_prodigy";
+  // Check child prodigy phrases
+  for (const phrase of GUARANTEED_CHILD_PRODIGY_PHRASES) {
+    if (normalizedText.includes(phrase.toLowerCase())) {
+      return "child_prodigy";
+    }
   }
   
-  // Check ads/sponsored phrases and regex
-  if (matchesPhrases(normalizedText, ADS_SPONSORED_PHRASES) || 
-      matchesRegex(postText, ADS_SPONSORED_REGEX)) {
-    return "ads";
-  }
-  
-  // Check sales pitch phrases and regex
-  if (matchesPhrases(normalizedText, SALES_PITCH_PHRASES) || 
-      matchesRegex(postText, SALES_PITCH_REGEX)) {
-    return "sales_pitch";
-  }
-  
-  // Check job seeking phrases and regex
-  if (matchesPhrases(normalizedText, JOB_SEEKING_PHRASES) || 
-      matchesRegex(postText, JOB_SEEKING_REGEX)) {
-    return "job_seeking";
-  }
-  
-  // Check events/webinars phrases and regex
-  if (matchesPhrases(normalizedText, EVENT_WEBINAR_PHRASES) || 
-      matchesRegex(postText, EVENT_WEBINAR_REGEX)) {
-    return "events";
-  }
-  
-  // Check engagement bait phrases and regex
-  if (matchesPhrases(normalizedText, ENGAGEMENT_BAIT_PHRASES) || 
-      matchesRegex(postText, ENGAGEMENT_BAIT_REGEX)) {
-    return "engagement_bait";
-  }
-  
-  // Check educational tips regex
-  if (matchesRegex(postText, EDUCATIONAL_TIPS_REGEX)) {
-    return "educational";
-  }
-  
-  // Check project launch regex
-  if (matchesRegex(postText, PROJECT_LAUNCH_REGEX)) {
-    return "project_launch";
-  }
-  
-  // Check congrats/certs regex
-  if (matchesRegex(postText, CONGRATS_CERTS_REGEX)) {
-    return "congrats";
-  }
-  
-  // Default: other (replaces "unsure")
-  return "other";
+  // Default: unsure
+  return "unsure";
 };
