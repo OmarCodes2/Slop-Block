@@ -13,12 +13,23 @@ const processedUrns = new Set(); // URNs we've already processed
 const blockedUrns = new Set(); // URNs that are currently blocked
 
 // Filter settings
+// Categories marked "HIDE" are set to false (hidden by default)
+// Categories marked "ALLOW" or "OPTIONAL" are set to true (shown by default)
 let filterSettings = {
-  showHiringPosts: true,
-  showJobAnnouncements: true,
-  showGrindset: true,
-  showAiDoomer: true,
-  showChildProdigy: true
+  showHiringPosts: true, // ALLOW
+  showJobAnnouncements: true, // HIDE (but keeping true for backward compatibility)
+  showGrindset: true, // HIDE (but keeping true for backward compatibility)
+  showAiDoomer: true, // HIDE (but keeping true for backward compatibility)
+  showChildProdigy: true, // HIDE (but keeping true for backward compatibility)
+  showSponsored: false, // HIDE
+  showSalesPitch: false, // HIDE
+  showJobSeeking: true, // User's call - defaulting to show
+  showEvents: false, // HIDE
+  showEngagementBait: false, // HIDE
+  showEducational: true, // OPTIONAL allow
+  showProjectLaunch: true, // OPTIONAL allow
+  showCongrats: false, // HIDE
+  showOther: false // HIDE (never unsure, but hide by default)
 };
 
 /**
@@ -26,13 +37,26 @@ let filterSettings = {
  */
 async function loadFilterSettings() {
   try {
-    const result = await chrome.storage.sync.get(['showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy']);
+    const result = await chrome.storage.sync.get([
+      'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
+      'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents', 'showEngagementBait',
+      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther'
+    ]);
     filterSettings = {
       showHiringPosts: result.showHiringPosts !== undefined ? result.showHiringPosts : true,
       showJobAnnouncements: result.showJobAnnouncements !== undefined ? result.showJobAnnouncements : true,
       showGrindset: result.showGrindset !== undefined ? result.showGrindset : true,
       showAiDoomer: result.showAiDoomer !== undefined ? result.showAiDoomer : true,
-      showChildProdigy: result.showChildProdigy !== undefined ? result.showChildProdigy : true
+      showChildProdigy: result.showChildProdigy !== undefined ? result.showChildProdigy : true,
+      showSponsored: result.showSponsored !== undefined ? result.showSponsored : true,
+      showSalesPitch: result.showSalesPitch !== undefined ? result.showSalesPitch : true,
+      showJobSeeking: result.showJobSeeking !== undefined ? result.showJobSeeking : true,
+      showEvents: result.showEvents !== undefined ? result.showEvents : true,
+      showEngagementBait: result.showEngagementBait !== undefined ? result.showEngagementBait : true,
+      showEducational: result.showEducational !== undefined ? result.showEducational : true,
+      showProjectLaunch: result.showProjectLaunch !== undefined ? result.showProjectLaunch : true,
+      showCongrats: result.showCongrats !== undefined ? result.showCongrats : true,
+      showOther: result.showOther !== undefined ? result.showOther : true
     };
   } catch (error) {
     console.error('[LinkedIn Filter] Error loading settings:', error);
@@ -42,7 +66,16 @@ async function loadFilterSettings() {
       showJobAnnouncements: true,
       showGrindset: true,
       showAiDoomer: true,
-      showChildProdigy: true
+      showChildProdigy: true,
+      showSponsored: false,
+      showSalesPitch: false,
+      showJobSeeking: true,
+      showEvents: false,
+      showEngagementBait: false,
+      showEducational: true,
+      showProjectLaunch: true,
+      showCongrats: false,
+      showOther: false
     };
   }
 }
@@ -141,22 +174,35 @@ function scanForPostArticles(root) {
     let shouldBlock = false;
     
     if (classification === "hiring") {
-      // Hiring post - block if showHiringPosts is false
       shouldBlock = !filterSettings.showHiringPosts;
     } else if (classification === "hired_announcement") {
-      // Job announcement - block if showJobAnnouncements is false
       shouldBlock = !filterSettings.showJobAnnouncements;
     } else if (classification === "grindset") {
-      // Grindset post - block if showGrindset is false
       shouldBlock = !filterSettings.showGrindset;
     } else if (classification === "ai_doomer") {
-      // AI doomer post - block if showAiDoomer is false
       shouldBlock = !filterSettings.showAiDoomer;
     } else if (classification === "child_prodigy") {
-      // Child prodigy post - block if showChildProdigy is false
       shouldBlock = !filterSettings.showChildProdigy;
+    } else if (classification === "sponsored") {
+      shouldBlock = !filterSettings.showSponsored;
+    } else if (classification === "sales_pitch") {
+      shouldBlock = !filterSettings.showSalesPitch;
+    } else if (classification === "job_seeking") {
+      shouldBlock = !filterSettings.showJobSeeking;
+    } else if (classification === "events") {
+      shouldBlock = !filterSettings.showEvents;
+    } else if (classification === "engagement_bait") {
+      shouldBlock = !filterSettings.showEngagementBait;
+    } else if (classification === "educational") {
+      shouldBlock = !filterSettings.showEducational;
+    } else if (classification === "project_launch") {
+      shouldBlock = !filterSettings.showProjectLaunch;
+    } else if (classification === "congrats") {
+      shouldBlock = !filterSettings.showCongrats;
+    } else if (classification === "other") {
+      shouldBlock = !filterSettings.showOther;
     } else {
-      // Unsure - block by default (conservative approach)
+      // Fallback - block by default (conservative approach)
       shouldBlock = true;
     }
     
@@ -171,7 +217,7 @@ function scanForPostArticles(root) {
  * 
  * @param {Element} postElement - The post article element
  * @param {string} urn - The URN identifier
- * @param {string} classification - The classification result: "hired_announcement", "grindset", "ai_doomer", "child_prodigy", or "unsure"
+ * @param {string} classification - The classification result
  */
 function blockPost(postElement, urn, classification) {
   // Skip if user has already revealed this post
@@ -191,7 +237,7 @@ function blockPost(postElement, urn, classification) {
   postElement.currentPostKey = urn;
   
   // Determine label based on classification
-  let label = "Unsure";
+  let label = "Other";
   if (classification === "hiring") {
     label = "Hiring";
   } else if (classification === "hired_announcement") {
@@ -202,6 +248,24 @@ function blockPost(postElement, urn, classification) {
     label = "AI Doomer";
   } else if (classification === "child_prodigy") {
     label = "Child Prodigy Flex";
+  } else if (classification === "sponsored") {
+    label = "Sponsored/Ad";
+  } else if (classification === "sales_pitch") {
+    label = "Sales Pitch";
+  } else if (classification === "job_seeking") {
+    label = "Job Seeking";
+  } else if (classification === "events") {
+    label = "Event/Webinar";
+  } else if (classification === "engagement_bait") {
+    label = "Engagement Bait";
+  } else if (classification === "educational") {
+    label = "Educational/Tips";
+  } else if (classification === "project_launch") {
+    label = "Project Launch";
+  } else if (classification === "congrats") {
+    label = "Congrats/Cert";
+  } else if (classification === "other") {
+    label = "Other";
   }
   
   // Apply the existing overlay/blur UI with the label
@@ -453,6 +517,24 @@ async function reEvaluateAllPosts() {
       shouldBlock = !filterSettings.showAiDoomer;
     } else if (classification === "child_prodigy") {
       shouldBlock = !filterSettings.showChildProdigy;
+    } else if (classification === "sponsored") {
+      shouldBlock = !filterSettings.showSponsored;
+    } else if (classification === "sales_pitch") {
+      shouldBlock = !filterSettings.showSalesPitch;
+    } else if (classification === "job_seeking") {
+      shouldBlock = !filterSettings.showJobSeeking;
+    } else if (classification === "events") {
+      shouldBlock = !filterSettings.showEvents;
+    } else if (classification === "engagement_bait") {
+      shouldBlock = !filterSettings.showEngagementBait;
+    } else if (classification === "educational") {
+      shouldBlock = !filterSettings.showEducational;
+    } else if (classification === "project_launch") {
+      shouldBlock = !filterSettings.showProjectLaunch;
+    } else if (classification === "congrats") {
+      shouldBlock = !filterSettings.showCongrats;
+    } else if (classification === "other") {
+      shouldBlock = !filterSettings.showOther;
     } else {
       shouldBlock = true;
     }

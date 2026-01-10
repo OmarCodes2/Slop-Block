@@ -5,24 +5,48 @@
  */
 
 // Default settings
+// Categories marked "HIDE" are set to false (hidden by default)
+// Categories marked "ALLOW" or "OPTIONAL" are set to true (shown by default)
 const DEFAULT_SETTINGS = {
-  showHiringPosts: true,
-  showJobAnnouncements: true,
-  showGrindset: true,
-  showAiDoomer: true,
-  showChildProdigy: true
+  showHiringPosts: true, // ALLOW
+  showJobAnnouncements: true, // HIDE (but keeping true for backward compatibility)
+  showGrindset: true, // HIDE (but keeping true for backward compatibility)
+  showAiDoomer: true, // HIDE (but keeping true for backward compatibility)
+  showChildProdigy: true, // HIDE (but keeping true for backward compatibility)
+  showSponsored: false, // HIDE
+  showSalesPitch: false, // HIDE
+  showJobSeeking: true, // User's call - defaulting to show
+  showEvents: false, // HIDE
+  showEngagementBait: false, // HIDE
+  showEducational: true, // OPTIONAL allow
+  showProjectLaunch: true, // OPTIONAL allow
+  showCongrats: false, // HIDE
+  showOther: false // HIDE (never unsure, but hide by default)
 };
 
 // Load settings from storage
 async function loadSettings() {
   try {
-    const result = await chrome.storage.sync.get(['showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy']);
+    const result = await chrome.storage.sync.get([
+      'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
+      'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents', 'showEngagementBait',
+      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther'
+    ]);
     return {
       showHiringPosts: result.showHiringPosts !== undefined ? result.showHiringPosts : DEFAULT_SETTINGS.showHiringPosts,
       showJobAnnouncements: result.showJobAnnouncements !== undefined ? result.showJobAnnouncements : DEFAULT_SETTINGS.showJobAnnouncements,
       showGrindset: result.showGrindset !== undefined ? result.showGrindset : DEFAULT_SETTINGS.showGrindset,
       showAiDoomer: result.showAiDoomer !== undefined ? result.showAiDoomer : DEFAULT_SETTINGS.showAiDoomer,
-      showChildProdigy: result.showChildProdigy !== undefined ? result.showChildProdigy : DEFAULT_SETTINGS.showChildProdigy
+      showChildProdigy: result.showChildProdigy !== undefined ? result.showChildProdigy : DEFAULT_SETTINGS.showChildProdigy,
+      showSponsored: result.showSponsored !== undefined ? result.showSponsored : DEFAULT_SETTINGS.showSponsored,
+      showSalesPitch: result.showSalesPitch !== undefined ? result.showSalesPitch : DEFAULT_SETTINGS.showSalesPitch,
+      showJobSeeking: result.showJobSeeking !== undefined ? result.showJobSeeking : DEFAULT_SETTINGS.showJobSeeking,
+      showEvents: result.showEvents !== undefined ? result.showEvents : DEFAULT_SETTINGS.showEvents,
+      showEngagementBait: result.showEngagementBait !== undefined ? result.showEngagementBait : DEFAULT_SETTINGS.showEngagementBait,
+      showEducational: result.showEducational !== undefined ? result.showEducational : DEFAULT_SETTINGS.showEducational,
+      showProjectLaunch: result.showProjectLaunch !== undefined ? result.showProjectLaunch : DEFAULT_SETTINGS.showProjectLaunch,
+      showCongrats: result.showCongrats !== undefined ? result.showCongrats : DEFAULT_SETTINGS.showCongrats,
+      showOther: result.showOther !== undefined ? result.showOther : DEFAULT_SETTINGS.showOther
     };
   } catch (error) {
     console.error('[Slop Block] Error loading settings:', error);
@@ -56,78 +80,70 @@ function notifyContentScript(settings) {
   });
 }
 
+// Helper function to get all toggle values
+function getAllToggleValues() {
+  return {
+    showHiringPosts: document.getElementById('toggle-hiring-posts').checked,
+    showJobAnnouncements: document.getElementById('toggle-job-announcements').checked,
+    showGrindset: document.getElementById('toggle-grindset').checked,
+    showAiDoomer: document.getElementById('toggle-ai-doomer').checked,
+    showChildProdigy: document.getElementById('toggle-child-prodigy').checked,
+    showSponsored: document.getElementById('toggle-sponsored').checked,
+    showSalesPitch: document.getElementById('toggle-sales-pitch').checked,
+    showJobSeeking: document.getElementById('toggle-job-seeking').checked,
+    showEvents: document.getElementById('toggle-events').checked,
+    showEngagementBait: document.getElementById('toggle-engagement-bait').checked,
+    showEducational: document.getElementById('toggle-educational').checked,
+    showProjectLaunch: document.getElementById('toggle-project-launch').checked,
+    showCongrats: document.getElementById('toggle-congrats').checked,
+    showOther: document.getElementById('toggle-other').checked
+  };
+}
+
+// Helper function to add toggle event listener
+function addToggleListener(toggleId) {
+  const toggle = document.getElementById(toggleId);
+  toggle.addEventListener('change', async (e) => {
+    const newSettings = getAllToggleValues();
+    await saveSettings(newSettings);
+  });
+}
+
 // Initialize popup
 async function initializePopup() {
   const settings = await loadSettings();
   
   // Set toggle states
-  const hiringPostsToggle = document.getElementById('toggle-hiring-posts');
-  const jobAnnouncementsToggle = document.getElementById('toggle-job-announcements');
-  const grindsetToggle = document.getElementById('toggle-grindset');
-  const aiDoomerToggle = document.getElementById('toggle-ai-doomer');
-  const childProdigyToggle = document.getElementById('toggle-child-prodigy');
+  document.getElementById('toggle-hiring-posts').checked = settings.showHiringPosts;
+  document.getElementById('toggle-job-announcements').checked = settings.showJobAnnouncements;
+  document.getElementById('toggle-grindset').checked = settings.showGrindset;
+  document.getElementById('toggle-ai-doomer').checked = settings.showAiDoomer;
+  document.getElementById('toggle-child-prodigy').checked = settings.showChildProdigy;
+  document.getElementById('toggle-sponsored').checked = settings.showSponsored;
+  document.getElementById('toggle-sales-pitch').checked = settings.showSalesPitch;
+  document.getElementById('toggle-job-seeking').checked = settings.showJobSeeking;
+  document.getElementById('toggle-events').checked = settings.showEvents;
+  document.getElementById('toggle-engagement-bait').checked = settings.showEngagementBait;
+  document.getElementById('toggle-educational').checked = settings.showEducational;
+  document.getElementById('toggle-project-launch').checked = settings.showProjectLaunch;
+  document.getElementById('toggle-congrats').checked = settings.showCongrats;
+  document.getElementById('toggle-other').checked = settings.showOther;
   
-  hiringPostsToggle.checked = settings.showHiringPosts;
-  jobAnnouncementsToggle.checked = settings.showJobAnnouncements;
-  grindsetToggle.checked = settings.showGrindset;
-  aiDoomerToggle.checked = settings.showAiDoomer;
-  childProdigyToggle.checked = settings.showChildProdigy;
-  
-  // Add event listeners
-  hiringPostsToggle.addEventListener('change', async (e) => {
-    const newSettings = {
-      showHiringPosts: e.target.checked,
-      showJobAnnouncements: jobAnnouncementsToggle.checked,
-      showGrindset: grindsetToggle.checked,
-      showAiDoomer: aiDoomerToggle.checked,
-      showChildProdigy: childProdigyToggle.checked
-    };
-    await saveSettings(newSettings);
-  });
-  
-  jobAnnouncementsToggle.addEventListener('change', async (e) => {
-    const newSettings = {
-      showHiringPosts: hiringPostsToggle.checked,
-      showJobAnnouncements: e.target.checked,
-      showGrindset: grindsetToggle.checked,
-      showAiDoomer: aiDoomerToggle.checked,
-      showChildProdigy: childProdigyToggle.checked
-    };
-    await saveSettings(newSettings);
-  });
-  
-  grindsetToggle.addEventListener('change', async (e) => {
-    const newSettings = {
-      showHiringPosts: hiringPostsToggle.checked,
-      showJobAnnouncements: jobAnnouncementsToggle.checked,
-      showGrindset: e.target.checked,
-      showAiDoomer: aiDoomerToggle.checked,
-      showChildProdigy: childProdigyToggle.checked
-    };
-    await saveSettings(newSettings);
-  });
-  
-  aiDoomerToggle.addEventListener('change', async (e) => {
-    const newSettings = {
-      showHiringPosts: hiringPostsToggle.checked,
-      showJobAnnouncements: jobAnnouncementsToggle.checked,
-      showGrindset: grindsetToggle.checked,
-      showAiDoomer: e.target.checked,
-      showChildProdigy: childProdigyToggle.checked
-    };
-    await saveSettings(newSettings);
-  });
-  
-  childProdigyToggle.addEventListener('change', async (e) => {
-    const newSettings = {
-      showHiringPosts: hiringPostsToggle.checked,
-      showJobAnnouncements: jobAnnouncementsToggle.checked,
-      showGrindset: grindsetToggle.checked,
-      showAiDoomer: aiDoomerToggle.checked,
-      showChildProdigy: e.target.checked
-    };
-    await saveSettings(newSettings);
-  });
+  // Add event listeners for all toggles
+  addToggleListener('toggle-hiring-posts');
+  addToggleListener('toggle-job-announcements');
+  addToggleListener('toggle-grindset');
+  addToggleListener('toggle-ai-doomer');
+  addToggleListener('toggle-child-prodigy');
+  addToggleListener('toggle-sponsored');
+  addToggleListener('toggle-sales-pitch');
+  addToggleListener('toggle-job-seeking');
+  addToggleListener('toggle-events');
+  addToggleListener('toggle-engagement-bait');
+  addToggleListener('toggle-educational');
+  addToggleListener('toggle-project-launch');
+  addToggleListener('toggle-congrats');
+  addToggleListener('toggle-other');
 }
 
 // Initialize when DOM is ready
