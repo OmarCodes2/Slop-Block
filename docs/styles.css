@@ -72,6 +72,12 @@ body {
     font-size: 28px;
 }
 
+.logo-image {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+}
+
 .nav-links {
     display: flex;
     gap: 32px;
