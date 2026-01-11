@@ -1,40 +1,21 @@
-/**
- * Content Script for LinkedIn Feed Filter
- * 
- * URN-based post identification and blocking:
- * - Identifies posts via: div[role="article"][data-urn^="urn:li:activity:"]
- * - Uses data-urn as the canonical identifier for deduplication
- * - Blocks all individual posts (no filtering logic)
- * - Performance-optimized: only scans added subtrees, uses requestIdleCallback
- */
-
-// Session state: track processed and blocked posts by URN
-const processedUrns = new Set(); // URNs we've already processed
-const blockedUrns = new Set(); // URNs that are currently blocked
-
-// Filter settings
-// Categories marked "HIDE" are set to false (hidden by default)
-// Categories marked "ALLOW" or "OPTIONAL" are set to true (shown by default)
+const processedUrns = new Set();
+const blockedUrns = new Set();
 let filterSettings = {
-  showHiringPosts: true, // ALLOW - only default enabled toggle
-  showJobAnnouncements: false, // HIDE
-  showGrindset: false, // HIDE
-  showAiDoomer: false, // HIDE
-  showChildProdigy: false, // HIDE
-  showSponsored: false, // HIDE
-  showSalesPitch: false, // HIDE
-  showJobSeeking: false, // HIDE
-  showEvents: false, // HIDE
-  showEngagementBait: false, // HIDE
-  showEducational: false, // HIDE
-  showProjectLaunch: false, // HIDE
-  showCongrats: false, // HIDE
-  showOther: false // HIDE
+  showHiringPosts: true,
+  showJobAnnouncements: false,
+  showGrindset: false,
+  showAiDoomer: false,
+  showChildProdigy: false,
+  showSponsored: false,
+  showSalesPitch: false,
+  showJobSeeking: false,
+  showEvents: false,
+  showEngagementBait: false,
+  showEducational: false,
+  showProjectLaunch: false,
+  showCongrats: false,
+  showOther: false
 };
-
-/**
- * Load filter settings from storage
- */
 async function loadFilterSettings() {
   try {
     const result = await chrome.storage.sync.get([
@@ -60,7 +41,6 @@ async function loadFilterSettings() {
     };
   } catch (error) {
     console.error('[LinkedIn Filter] Error loading settings:', error);
-    // Use defaults
     filterSettings = {
       showHiringPosts: true,
       showJobAnnouncements: false,
@@ -80,29 +60,18 @@ async function loadFilterSettings() {
   }
 }
 
-// Load settings on initialization
 loadFilterSettings();
 
-/**
- * Extract activity URN from an element
- * Returns the data-urn if it's a valid activity URN, else null
- * 
- * @param {Element} el - The element to check
- * @returns {string|null} The URN if valid, else null
- */
 function getActivityUrn(el) {
-  // Check if element itself has the URN
   const urn = el.getAttribute('data-urn');
   if (urn && urn.startsWith('urn:li:activity:')) {
     return urn;
   }
   
-  // Check if element is an article with the URN
   if (el.matches && el.matches('div[role="article"][data-urn^="urn:li:activity:"]')) {
     return el.getAttribute('data-urn');
   }
   
-  // Check for nested article with URN
   const article = el.querySelector('div[role="article"][data-urn^="urn:li:activity:"]');
   if (article) {
     return article.getAttribute('data-urn');
@@ -111,20 +80,12 @@ function getActivityUrn(el) {
   return null;
 }
 
-/**
- * Check if an element should be ignored (aggregate or placeholder)
- * 
- * @param {Element} el - The element to check
- * @returns {boolean} True if should be ignored
- */
 function shouldIgnoreElement(el) {
-  // Ignore aggregates
   const dataId = el.getAttribute('data-id');
   if (dataId && dataId.startsWith('urn:li:aggregate:')) {
     return true;
   }
   
-  // Ignore lazy placeholders that don't contain articles with data-urn
   if (el.classList && el.classList.contains('occludable-update-hint') && 
       el.classList.contains('occludable-update')) {
     const hasArticleWithUrn = el.querySelector('div[role="article"][data-urn^="urn:li:activity:"]');
@@ -136,41 +97,28 @@ function shouldIgnoreElement(el) {
   return false;
 }
 
-/**
- * Scan a root element for post articles and process them
- * Only processes posts that haven't been seen before
- * 
- * @param {Element} root - Root element to scan within
- */
 function scanForPostArticles(root) {
-  // Skip if root is not an element
   if (!root || root.nodeType !== Node.ELEMENT_NODE) {
     return;
   }
   
-  // Ignore aggregates and placeholders
   if (shouldIgnoreElement(root)) {
     return;
   }
   
-  // Find all article elements with activity URNs
   const articles = root.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"]');
   
   for (const article of articles) {
     const urn = article.getAttribute('data-urn');
     
-    // Skip if no URN or already processed
     if (!urn || processedUrns.has(urn)) {
       continue;
     }
     
-    // Mark as processed immediately to prevent double-processing
     processedUrns.add(urn);
     
-    // Classify the post
     const classification = window.LinkedInFilter.classifyPost(article);
     
-    // Check if we should block based on classification and settings
     let shouldBlock = false;
     
     if (classification === "hiring") {
@@ -202,14 +150,12 @@ function scanForPostArticles(root) {
     } else if (classification === "other") {
       shouldBlock = !filterSettings.showOther;
     } else {
-      // Fallback - block by default (conservative approach)
       shouldBlock = true;
     }
     
     if (shouldBlock) {
       blockPost(article, urn, classification);
       
-      // If post is classified as "other" and was blocked, categorize it with AI
       if (classification === "other") {
         categorizePostWithAI(article, urn);
       }
@@ -217,14 +163,7 @@ function scanForPostArticles(root) {
   }
 }
 
-/**
- * Categorize a post with AI when it's classified as "other"
- * 
- * @param {Element} postElement - The post article element
- * @param {string} urn - The URN identifier
- */
 async function categorizePostWithAI(postElement, urn) {
-  // Extract post text using the filter function
   const postText = window.LinkedInFilter.extractPostText(postElement);
   
   if (!postText || !postText.trim()) {
@@ -232,14 +171,11 @@ async function categorizePostWithAI(postElement, urn) {
     return;
   }
   
-  // Update UI to show "Processing..." while AI categorizes
   window.LinkedInFilter.updateOverlayLabel(postElement, "Processing...");
   
-  // Create prompt for AI categorization - explicitly request 1-3 words, no markdown
   const prompt = `Categorize this LinkedIn post in exactly 1-3 words only. Return ONLY the category name with no markdown, stars, asterisks, or formatting. Just the words. Post: "${postText.substring(0, 1000)}"`;
   
   try {
-    // Send to background service worker for LLM processing
     const response = await chrome.runtime.sendMessage({
       action: "llm",
       text: prompt
@@ -247,24 +183,20 @@ async function categorizePostWithAI(postElement, urn) {
     
     if (response.error) {
       console.error('[LinkedIn Filter] AI categorization error:', response.error);
-      // Update UI to show error or fallback message
       window.LinkedInFilter.updateOverlayLabel(postElement, "Other");
     } else {
       console.log('[LinkedIn Filter] AI categorization for post', urn, ':', response.result);
       
-      // Clean up the response: remove markdown formatting, extra whitespace, and limit to 3 words
       let aiLabel = response.result
-        .replace(/\*\*/g, '') // Remove bold markdown
-        .replace(/\*/g, '') // Remove any remaining asterisks
-        .replace(/#/g, '') // Remove hash marks
-        .replace(/\[|\]/g, '') // Remove brackets
+        .replace(/\*\*/g, '')
+        .replace(/\*/g, '')
+        .replace(/#/g, '')
+        .replace(/\[|\]/g, '')
         .trim();
       
-      // Extract first 1-3 words only
       const words = aiLabel.split(/\s+/).slice(0, 3);
       aiLabel = words.join(' ');
       
-      // Fallback if empty
       if (!aiLabel || aiLabel.length === 0) {
         aiLabel = "Other";
       }
@@ -273,36 +205,23 @@ async function categorizePostWithAI(postElement, urn) {
     }
   } catch (error) {
     console.error('[LinkedIn Filter] Failed to categorize post with AI:', error);
-    // Update UI to show fallback message on error
     window.LinkedInFilter.updateOverlayLabel(postElement, "Other");
   }
 }
 
-/**
- * Block a post element using the existing overlay UI
- * 
- * @param {Element} postElement - The post article element
- * @param {string} urn - The URN identifier
- * @param {string} classification - The classification result
- */
 function blockPost(postElement, urn, classification) {
-  // Skip if user has already revealed this post
   if (window.LinkedInFilter.userRevealed.has(urn)) {
     return;
   }
   
-  // Skip if already blocked
   if (blockedUrns.has(urn)) {
     return;
   }
   
-  // Mark as blocked
   blockedUrns.add(urn);
   
-  // Store URN on element for reveal functionality
   postElement.currentPostKey = urn;
   
-  // Determine label based on classification
   let label = "Other";
   if (classification === "hiring") {
     label = "Hiring";
@@ -334,20 +253,12 @@ function blockPost(postElement, urn, classification) {
     label = "Other";
   }
   
-  // Apply the existing overlay/blur UI with the label
   window.LinkedInFilter.blurPost(postElement, false, label);
 }
 
-/**
- * Find the feed container element
- * 
- * @returns {Element|null} The feed container or null if not found
- */
 function findFeedContainer() {
-  // Primary: scaffold-finite-scroll__content with FEED context
   let container = document.querySelector('.scaffold-finite-scroll__content[data-finite-scroll-hotkey-context="FEED"]');
   
-  // Fallback: scaffold-finite-scroll__content without context
   if (!container) {
     container = document.querySelector('.scaffold-finite-scroll__content');
   }
@@ -355,18 +266,11 @@ function findFeedContainer() {
   return container;
 }
 
-// Track observer state
 let feedObserver = null;
 let isInitialized = false;
 let pendingScanWork = null;
 
-/**
- * Batch scan work using requestIdleCallback or setTimeout
- * 
- * @param {Array<Element>} roots - Array of root elements to scan
- */
 function scheduleScanWork(roots) {
-  // Cancel any pending work
   if (pendingScanWork) {
     if (typeof pendingScanWork === 'number') {
       clearTimeout(pendingScanWork);
@@ -375,7 +279,6 @@ function scheduleScanWork(roots) {
     }
   }
   
-  // Use requestIdleCallback if available, fallback to setTimeout
   if (window.requestIdleCallback) {
     pendingScanWork = requestIdleCallback(() => {
       for (const root of roots) {
@@ -393,21 +296,14 @@ function scheduleScanWork(roots) {
   }
 }
 
-/**
- * Initialize the feed observer
- * Watches for new posts using MutationObserver (virtualization-safe)
- */
 function initializeFeedObserver() {
-  // Prevent duplicate initialization
   if (isInitialized && feedObserver) {
     return;
   }
   
-  // Find the feed container
   const feedContainer = findFeedContainer();
   
   if (!feedContainer) {
-    // Retry after a delay if container not found
     setTimeout(() => {
       if (!isInitialized) {
         initializeFeedObserver();
@@ -416,26 +312,20 @@ function initializeFeedObserver() {
     return;
   }
   
-  // Initial scan of existing posts
   scanForPostArticles(feedContainer);
   
-  // Set up MutationObserver to watch for new posts
-  // Only scan added subtrees for performance
   const observer = new MutationObserver((mutations) => {
     const addedRoots = [];
     
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.nodeType === Node.ELEMENT_NODE) {
-          // Check if the node itself is a post article
           const urn = getActivityUrn(node);
           if (urn && !processedUrns.has(urn)) {
             addedRoots.push(node);
             continue;
           }
           
-          // Check if node contains post articles (scan subtree)
-          // Only add if it's not already processed
           if (!shouldIgnoreElement(node)) {
             addedRoots.push(node);
           }
@@ -443,13 +333,11 @@ function initializeFeedObserver() {
       }
     }
     
-    // Batch the scan work to avoid blocking scroll
     if (addedRoots.length > 0) {
       scheduleScanWork(addedRoots);
     }
   });
   
-  // Observe the feed container for new posts
   observer.observe(feedContainer, {
     childList: true,
     subtree: true
@@ -459,51 +347,37 @@ function initializeFeedObserver() {
   isInitialized = true;
 }
 
-/**
- * Re-initialize the observer (for SPA navigation)
- */
 function reinitializeFeedObserver() {
-  // Disconnect existing observer if any
   if (feedObserver) {
     feedObserver.disconnect();
     feedObserver = null;
   }
   isInitialized = false;
   
-  // Clear processed state to allow re-processing posts on new page
-  // Note: We keep userRevealed to maintain user preferences
   processedUrns.clear();
   blockedUrns.clear();
   
-  // Re-initialize after a short delay to let new page render
   setTimeout(() => {
     initializeFeedObserver();
   }, 500);
 }
 
-// Initialize when DOM is ready
 function startInitialization() {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      // Wait a bit for LinkedIn's JS to initialize
       setTimeout(initializeFeedObserver, 100);
     });
   } else if (document.readyState === 'interactive' || document.readyState === 'complete') {
-    // DOM already loaded, but wait for LinkedIn's feed to potentially load
     setTimeout(initializeFeedObserver, 100);
   } else {
-    // Fallback: initialize immediately
     initializeFeedObserver();
   }
 }
 
-// Start initialization
 startInitialization();
 
-// Also listen for when page becomes fully loaded (handles slow-loading resources)
 if (document.readyState !== 'complete') {
   window.addEventListener('load', () => {
-    // Re-initialize when page is fully loaded (handles refresh scenarios)
     setTimeout(() => {
       if (!isInitialized || !feedObserver) {
         initializeFeedObserver();
@@ -512,7 +386,6 @@ if (document.readyState !== 'complete') {
   });
 }
 
-// Also re-initialize on navigation (LinkedIn is a SPA)
 let lastUrl = location.href;
 const navigationObserver = new MutationObserver(() => {
   const url = location.href;
@@ -522,15 +395,12 @@ const navigationObserver = new MutationObserver(() => {
   }
 });
 
-// Watch for URL changes in the document
 navigationObserver.observe(document, { subtree: true, childList: true });
 
-// Also listen for popstate events (back/forward navigation)
 window.addEventListener('popstate', () => {
   setTimeout(() => reinitializeFeedObserver(), 500);
 });
 
-// Listen for pushstate/replacestate (programmatic navigation)
 const originalPushState = history.pushState;
 const originalReplaceState = history.replaceState;
 
@@ -544,33 +414,24 @@ history.replaceState = function(...args) {
   setTimeout(() => reinitializeFeedObserver(), 500);
 };
 
-/**
- * Re-evaluate all posts when settings change
- */
 async function reEvaluateAllPosts() {
-  // Reload settings
   await loadFilterSettings();
   
-  // Find all currently visible posts
   const feedContainer = findFeedContainer();
   if (!feedContainer) return;
   
-  // Re-scan all articles
   const articles = feedContainer.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"]');
   
   for (const article of articles) {
     const urn = article.getAttribute('data-urn');
     if (!urn) continue;
     
-    // Skip if user has manually revealed this post
     if (window.LinkedInFilter.userRevealed.has(urn)) {
       continue;
     }
     
-    // Re-classify the post
     const classification = window.LinkedInFilter.classifyPost(article);
     
-    // Determine if we should block based on settings
     let shouldBlock = false;
     
     if (classification === "hiring") {
@@ -608,10 +469,8 @@ async function reEvaluateAllPosts() {
     const isCurrentlyBlocked = article.classList.contains('linkedin-filter-blurred');
     
     if (shouldBlock && !isCurrentlyBlocked) {
-      // Need to block this post
       blockPost(article, urn, classification);
     } else if (!shouldBlock && isCurrentlyBlocked) {
-      // Need to unblock this post (but don't mark as user-revealed)
       const overlays = article.querySelectorAll('.linkedin-filter-overlay');
       overlays.forEach(overlay => {
         if (overlay.parentNode) {
@@ -623,12 +482,9 @@ async function reEvaluateAllPosts() {
     }
   }
 }
-
-// Listen for settings changes from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'settingsChanged') {
     filterSettings = message.settings || filterSettings;
-    // Re-evaluate all posts with new settings
     reEvaluateAllPosts();
     sendResponse({ success: true });
   }

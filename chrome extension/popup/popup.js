@@ -1,30 +1,19 @@
-/**
- * Popup Script for Slop Block Extension
- * 
- * Handles toggle state management and storage
- */
-
-// Default settings
-// Categories marked "HIDE" are set to false (hidden by default)
-// Categories marked "ALLOW" or "OPTIONAL" are set to true (shown by default)
 const DEFAULT_SETTINGS = {
-  showHiringPosts: true, // ALLOW - only default enabled toggle
-  showJobAnnouncements: false, // HIDE
-  showGrindset: false, // HIDE
-  showAiDoomer: false, // HIDE
-  showChildProdigy: false, // HIDE
-  showSponsored: false, // HIDE
-  showSalesPitch: false, // HIDE
-  showJobSeeking: false, // HIDE
-  showEvents: false, // HIDE
-  showEngagementBait: false, // HIDE
-  showEducational: false, // HIDE
-  showProjectLaunch: false, // HIDE
-  showCongrats: false, // HIDE
-  showOther: false // HIDE
+  showHiringPosts: true,
+  showJobAnnouncements: false,
+  showGrindset: false,
+  showAiDoomer: false,
+  showChildProdigy: false,
+  showSponsored: false,
+  showSalesPitch: false,
+  showJobSeeking: false,
+  showEvents: false,
+  showEngagementBait: false,
+  showEducational: false,
+  showProjectLaunch: false,
+  showCongrats: false,
+  showOther: false
 };
-
-// Load settings from storage
 async function loadSettings() {
   try {
     const result = await chrome.storage.sync.get([
@@ -54,33 +43,27 @@ async function loadSettings() {
   }
 }
 
-// Save settings to storage
 async function saveSettings(settings) {
   try {
     await chrome.storage.sync.set(settings);
-    // Notify content script of settings change
     notifyContentScript(settings);
   } catch (error) {
     console.error('[Slop Block] Error saving settings:', error);
   }
 }
 
-// Notify content script of settings change
 function notifyContentScript(settings) {
-  // Get the active tab
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0] && tabs[0].url && tabs[0].url.includes('linkedin.com')) {
       chrome.tabs.sendMessage(tabs[0].id, {
         action: 'settingsChanged',
         settings: settings
       }).catch(() => {
-        // Content script might not be ready, that's okay
       });
     }
   });
 }
 
-// Helper function to get all toggle values
 function getAllToggleValues() {
   return {
     showHiringPosts: document.getElementById('toggle-hiring-posts').checked,
@@ -100,7 +83,6 @@ function getAllToggleValues() {
   };
 }
 
-// Helper function to add toggle event listener
 function addToggleListener(toggleId) {
   const toggle = document.getElementById(toggleId);
   toggle.addEventListener('change', async (e) => {
@@ -109,11 +91,9 @@ function addToggleListener(toggleId) {
   });
 }
 
-// Initialize popup
 async function initializePopup() {
   const settings = await loadSettings();
   
-  // Set toggle states
   document.getElementById('toggle-hiring-posts').checked = settings.showHiringPosts;
   document.getElementById('toggle-job-announcements').checked = settings.showJobAnnouncements;
   document.getElementById('toggle-grindset').checked = settings.showGrindset;
@@ -129,7 +109,6 @@ async function initializePopup() {
   document.getElementById('toggle-congrats').checked = settings.showCongrats;
   document.getElementById('toggle-other').checked = settings.showOther;
   
-  // Add event listeners for all toggles
   addToggleListener('toggle-hiring-posts');
   addToggleListener('toggle-job-announcements');
   addToggleListener('toggle-grindset');
@@ -145,7 +124,6 @@ async function initializePopup() {
   addToggleListener('toggle-congrats');
   addToggleListener('toggle-other');
 
-  // Setup "More filters" collapsible behavior
   const moreBtn = document.querySelector('.more-toggle');
   const moreContainer = document.getElementById('more-filters');
   if (moreBtn && moreContainer) {
@@ -158,7 +136,6 @@ async function initializePopup() {
   }
 }
 
-// Initialize when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializePopup);
 } else {

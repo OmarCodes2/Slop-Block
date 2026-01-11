@@ -1,36 +1,18 @@
-/**
- * Filtering Logic for LinkedIn Feed Filter
- *
- * Classification logic that decides what label to show and whether to auto-hide or allow.
- */
-
-// Create namespace for filtering logic
 window.LinkedInFilter = window.LinkedInFilter || {};
-
-// Phrase lists for classification
 const GUARANTEED_HIRING_PHRASES = [
-  // explicit hiring
   "we are hiring","we're hiring","we are now hiring","we're now hiring",
   "we are currently hiring","we're currently hiring","we are actively hiring","we're actively hiring",
   "hiring now","now hiring","currently hiring","actively hiring","hiring immediately","hiring urgently",
   "immediate hire","urgent hiring","hiring asap","asap hire","fast hire",
-
-  // open roles / openings / positions
   "open role","open roles","roles open","role open","roles available","role available",
   "open position","open positions","positions open","position open","positions available","position available",
   "job opening","job openings","opening available","openings available",
   "vacancy","vacancies","open vacancy","open vacancies",
-
-  // recruiting language
   "we're recruiting","we are recruiting","recruiting now","currently recruiting","actively recruiting",
   "recruiting for","hiring for","staffing for","building out the team","expanding the team",
   "growing the team","team expansion","scaling the team","headcount approved","new headcount",
-
-  // role request / JD
   "job description","jd in comments","jd below","jd attached","role description",
   "requirements include","responsibilities include","must have experience","nice to have",
-
-  // direct call to apply
   "apply now","apply today","apply here","apply below","apply above",
   "apply via","apply through","apply on","apply using","submit your application","submit application",
   "application link","apply link","link to apply","apply in comments","apply in the comments",
@@ -41,27 +23,17 @@ const GUARANTEED_HIRING_PHRASES = [
   "drop your resume","drop resume","share your resume","share resume",
   "forward your resume","forward resume",
   "reach out with your resume","reach out with your cv",
-
-  // "looking for" patterns (still hiring-ish)
   "we're looking for","we are looking for","we're seeking","we are seeking","in search of",
   "we need a","we need an","we're adding a","we are adding a",
   "looking to hire","seeking to hire","looking to recruit","seeking to recruit",
-
-  // referrals / internal recruiting
   "referrals welcome","referral welcome","referral bonus","employee referral","please refer",
   "if you know someone","know someone who","tag someone who","share with someone",
   "send me a referral","open requisition","open req","req id","requisition id",
-
-  // contractors / freelance
   "contract role","contract position","freelance role","freelance position","short-term contract",
   "part-time role","part time role","full-time role","full time role","internship opening","internship role",
-
-  // hashtags (huge coverage)
   "#hiring","#werehiring","#wearehiring","#jobopening","#jobopenings","#openroles","#recruiting",
   "#careers","#careerservice","#vacancy","#vacancies"
 ];
-
-// High-signal regex for hiring (catches structured variants)
 const GUARANTEED_HIRING_REGEX = [
   /\bwe\s*(are|'re)\s*(actively\s*)?hiring\b/i,
   /\b(now|currently|actively)\s+hiring\b/i,
@@ -74,17 +46,13 @@ const GUARANTEED_HIRING_REGEX = [
 ];
 
 const GUARANTEED_HIRED_ANNOUNCEMENT_PHRASES = [
-  // announce/share templates
   "i'm excited to announce","i am excited to announce","excited to announce",
   "i'm thrilled to announce","i am thrilled to announce","thrilled to announce",
   "i'm happy to announce","i am happy to announce","happy to announce",
   "i'm pleased to announce","i am pleased to announce","pleased to announce",
   "i'm delighted to announce","i am delighted to announce","delighted to announce",
-
   "excited to share","thrilled to share","happy to share","proud to share","pleased to share",
   "excited to share that i","thrilled to share that i","happy to share that i","proud to share that i",
-
-  // accepted / joining / starting
   "i've accepted","i have accepted","accepted an offer","offer accepted",
   "grateful to accept","honored to accept","excited to accept","thrilled to accept",
   "i'm joining","i am joining","i'll be joining","i will be joining","will be joining",
@@ -95,26 +63,18 @@ const GUARANTEED_HIRED_ANNOUNCEMENT_PHRASES = [
   "officially starting","officially starting at","officially beginning",
   "excited to start","thrilled to start","excited to begin","thrilled to begin",
   "can't wait to start","cant wait to start","can't wait to begin","cant wait to begin",
-
-  // role title style
   "i'm starting as","i am starting as","i'll be starting as","i will be starting as",
   "i'm joining as","i am joining as","i'll be joining as","i will be joining as",
   "i'm excited to start as","i am excited to start as",
-
-  // new chapter language
   "new chapter","next chapter","new journey","next journey","new adventure",
   "beginning my journey","starting my journey",
   "super excited to","beyond excited to","incredibly excited to",
   "humbled to","honored to","grateful for this opportunity",
-
-  // internship/co-op wording (very common)
   "i'm excited to share that i'll be interning","i am excited to share that i will be interning",
   "i'll be interning at","i will be interning at","excited to intern at",
   "starting my internship at","beginning my internship at",
   "co-op at","interning at","summer intern at","incoming intern",
   "incoming software engineer intern","incoming swe intern","incoming intern at",
-
-  // hashtags
   "#newrole","#newjob","#newposition","#grateful","#excited","#internship","#intern",
   "#incomingintern","#startingsoon"
 ];
@@ -193,7 +153,6 @@ const GUARANTEED_CHILD_PRODIGY_REGEX = [
   /\b(high\s+school(er)?|middle\s+school(er)?)\b/i
 ];
 
-// Sponsored / ads (HIDE)
 const ADS_SPONSORED_PHRASES = [
   "promoted","sponsored","learn more","sign up","register now","download","get the guide",
   "free trial","start your free trial","request a demo","book a demo","limited time","offer"
@@ -204,7 +163,6 @@ const ADS_SPONSORED_REGEX = [
   /\b(start|claim)\s+(your\s+)?(free\s+)?trial\b/i
 ];
 
-// Sales pitch / lead gen (HIDE)
 const SALES_PITCH_PHRASES = [
   "book a call","dm me","inbox me","message me","calendar link","limited spots",
   "clients","case study","roi","pipeline","my course","my program","cohort",
@@ -216,7 +174,6 @@ const SALES_PITCH_REGEX = [
   /\b(waitlist|cohort|program)\b/i
 ];
 
-// Layoff / open-to-work / job seeking (HIDE)
 const JOB_SEEKING_PHRASES = [
   "open to work","#opentowork","looking for new opportunities","seeking new opportunities",
   "actively looking","any leads","please share","referral",
@@ -228,7 +185,6 @@ const JOB_SEEKING_REGEX = [
   /\b(role|position)\s+(was\s+)?(eliminated|impacted)\b/i
 ];
 
-// Events / webinars (HIDE)
 const EVENT_WEBINAR_PHRASES = [
   "webinar","workshop","live session","panel","fireside chat","conference","summit",
   "register","registration","save your spot","save the date","speaker","speaking at"
@@ -239,7 +195,6 @@ const EVENT_WEBINAR_REGEX = [
   /\b(speaking at|speaker)\b/i
 ];
 
-// Engagement bait / comment traps (HIDE)
 const ENGAGEMENT_BAIT_PHRASES = [
   "agree?","thoughts?","what do you think?","comment below","comment '","type '",
   "like if","share if","repost if","tag someone","follow for more","part 2",
@@ -251,7 +206,6 @@ const ENGAGEMENT_BAIT_REGEX = [
   /\btag\s+(someone|a friend|\d+)\b/i
 ];
 
-// Educational / tips (OPTIONAL: allow if you want "value posts")
 const EDUCATIONAL_TIPS_REGEX = [
   /\b\d+\s+(tips|lessons|mistakes|steps|ways)\b/i,
   /\b(step\s*by\s*step)\b/i,
@@ -259,7 +213,6 @@ const EDUCATIONAL_TIPS_REGEX = [
   /\b(checklist|framework|template|guide|playbook)\b/i
 ];
 
-// Project launch / shipping / open-source (OPTIONAL allow)
 const PROJECT_LAUNCH_REGEX = [
   /\b(i|we)\s+(built|shipped|launched|released)\b/i,
   /\b(v1|v2|beta|public beta)\b/i,
@@ -267,51 +220,27 @@ const PROJECT_LAUNCH_REGEX = [
   /\b(introducing|announcing)\b/i
 ];
 
-// Congrats / certs / awards (HIDE if you hate these)
 const CONGRATS_CERTS_REGEX = [
   /\b(congrats|congratulations)\b/i,
   /\b(certification|certificate|credential|badge)\b/i,
   /\b(honored|humbled|grateful)\b/i
 ];
 
-/**
- * Normalize text for matching
- * - Convert to lowercase
- * - Normalize curly quotes/apostrophes
- * - Normalize dashes
- * - Remove most punctuation except # @ : / . (keep URLs/hashtags/mentions)
- * - Collapse whitespace
- * 
- * @param {string} text - The text to normalize
- * @returns {string} - Normalized text
- */
 function normalizeText(text) {
   if (!text) return "";
   return text
     .toLowerCase()
-    // normalize curly quotes/apostrophes
     .replace(/[''´`]/g, "'")
     .replace(/[""]/g, '"')
-    // normalize dashes
     .replace(/[—–]/g, "-")
-    // remove most punctuation except # @ : / . (keep URLs/hashtags/mentions)
     .replace(/[^\p{L}\p{N}\s#@:/\.\-']/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-/**
- * Extract visible text content from a LinkedIn post element
- * Includes expanded "see more" content if already expanded
- * 
- * @param {Element} postElement - The post article element
- * @returns {string} - The extracted text content
- */
 window.LinkedInFilter.extractPostText = function(postElement) {
   if (!postElement) return '';
   
-  // Try multiple selectors to find the post text content
-  // LinkedIn uses various classes for post text
   const textSelectors = [
     '.feed-shared-update-v2__description',
     '.feed-shared-text-view',
@@ -324,11 +253,9 @@ window.LinkedInFilter.extractPostText = function(postElement) {
   
   let textContent = '';
   
-  // Try each selector
   for (const selector of textSelectors) {
     const element = postElement.querySelector(selector);
     if (element) {
-      // Get all text content, including from nested elements
       textContent = element.innerText || element.textContent || '';
       if (textContent.trim()) {
         break;
@@ -336,11 +263,8 @@ window.LinkedInFilter.extractPostText = function(postElement) {
     }
   }
   
-  // Fallback: get all text from the post element if no specific selector worked
   if (!textContent.trim()) {
-    // Clone to avoid modifying the original
     const clone = postElement.cloneNode(true);
-    // Remove overlay and other UI elements
     const overlays = clone.querySelectorAll('.linkedin-filter-overlay, button, .feed-shared-social-action-bar');
     overlays.forEach(el => el.remove());
     textContent = clone.innerText || clone.textContent || '';
@@ -349,12 +273,6 @@ window.LinkedInFilter.extractPostText = function(postElement) {
   return textContent;
 };
 
-/**
- * Check if text matches any phrase in a list
- * @param {string} text - Normalized text to check
- * @param {Array<string>} phrases - Array of phrases to match
- * @returns {boolean} - True if any phrase matches
- */
 function matchesPhrases(text, phrases) {
   for (const phrase of phrases) {
     if (text.includes(phrase.toLowerCase())) {
@@ -364,12 +282,6 @@ function matchesPhrases(text, phrases) {
   return false;
 }
 
-/**
- * Check if text matches any regex in a list
- * @param {string} text - Text to check (not normalized, for regex)
- * @param {Array<RegExp>} regexes - Array of regex patterns
- * @returns {boolean} - True if any regex matches
- */
 function matchesRegex(text, regexes) {
   for (const regex of regexes) {
     if (regex.test(text)) {
@@ -379,110 +291,71 @@ function matchesRegex(text, regexes) {
   return false;
 }
 
-/**
- * Classify a post based on phrase and regex matching
- * 
- * Precedence:
- * 1) If matches hired announcement phrases/regex → return "hired_announcement"
- * 2) Else if matches hiring phrases/regex → return "hiring"
- * 3) Else if matches grindset phrases/regex → return "grindset"
- * 4) Else if matches AI doomer phrases/regex → return "ai_doomer"
- * 5) Else if matches child prodigy phrases/regex → return "child_prodigy"
- * 6) Else if matches sponsored/ads phrases/regex → return "sponsored"
- * 7) Else if matches sales pitch phrases/regex → return "sales_pitch"
- * 8) Else if matches job seeking phrases/regex → return "job_seeking"
- * 9) Else if matches events/webinars phrases/regex → return "events"
- * 10) Else if matches engagement bait phrases/regex → return "engagement_bait"
- * 11) Else if matches educational tips regex → return "educational"
- * 12) Else if matches project launch regex → return "project_launch"
- * 13) Else if matches congrats/certs regex → return "congrats"
- * 14) Else → return "other"
- * 
- * @param {Element} postElement - The post article element
- * @returns {string} - Classification result
- */
 window.LinkedInFilter.classifyPost = function(postElement) {
-  // Extract post text
   const postText = window.LinkedInFilter.extractPostText(postElement);
   const normalizedText = normalizeText(postText);
   
-  // Check hired announcement phrases and regex
   if (matchesPhrases(normalizedText, GUARANTEED_HIRED_ANNOUNCEMENT_PHRASES) || 
       matchesRegex(postText, GUARANTEED_HIRED_ANNOUNCEMENT_REGEX)) {
     return "hired_announcement";
   }
   
-  // Check hiring phrases and regex second (higher precedence than others)
   if (matchesPhrases(normalizedText, GUARANTEED_HIRING_PHRASES) || 
       matchesRegex(postText, GUARANTEED_HIRING_REGEX)) {
     return "hiring";
   }
   
-  // Check grindset phrases and regex
   if (matchesPhrases(normalizedText, GUARANTEED_GRINDSET_PHRASES) || 
       matchesRegex(postText, GUARANTEED_GRINDSET_REGEX)) {
     return "grindset";
   }
   
-  // Check AI doomer phrases and regex
   if (matchesPhrases(normalizedText, GUARANTEED_AI_DOOMER_PHRASES) || 
       matchesRegex(postText, GUARANTEED_AI_DOOMER_REGEX)) {
     return "ai_doomer";
   }
   
-  // Check child prodigy phrases and regex
   if (matchesPhrases(normalizedText, GUARANTEED_CHILD_PRODIGY_PHRASES) || 
       matchesRegex(postText, GUARANTEED_CHILD_PRODIGY_REGEX)) {
     return "child_prodigy";
   }
   
-  // Check sponsored/ads phrases and regex
   if (matchesPhrases(normalizedText, ADS_SPONSORED_PHRASES) || 
       matchesRegex(postText, ADS_SPONSORED_REGEX)) {
     return "sponsored";
   }
   
-  // Check sales pitch phrases and regex
   if (matchesPhrases(normalizedText, SALES_PITCH_PHRASES) || 
       matchesRegex(postText, SALES_PITCH_REGEX)) {
     return "sales_pitch";
   }
   
-  // Check job seeking phrases and regex
   if (matchesPhrases(normalizedText, JOB_SEEKING_PHRASES) || 
       matchesRegex(postText, JOB_SEEKING_REGEX)) {
     return "job_seeking";
   }
   
-  // Check events/webinars phrases and regex
   if (matchesPhrases(normalizedText, EVENT_WEBINAR_PHRASES) || 
       matchesRegex(postText, EVENT_WEBINAR_REGEX)) {
     return "events";
   }
   
-  // Check engagement bait phrases and regex
   if (matchesPhrases(normalizedText, ENGAGEMENT_BAIT_PHRASES) || 
       matchesRegex(postText, ENGAGEMENT_BAIT_REGEX)) {
     return "engagement_bait";
   }
   
-  // Check educational tips regex
   if (matchesRegex(postText, EDUCATIONAL_TIPS_REGEX)) {
     return "educational";
   }
   
-  // Check project launch regex
   if (matchesRegex(postText, PROJECT_LAUNCH_REGEX)) {
     return "project_launch";
   }
   
-  // Check congrats/certs regex
   if (matchesRegex(postText, CONGRATS_CERTS_REGEX)) {
     return "congrats";
   }
   
-  
-  
-  // Default: other (never unsure)
   return "other";
 };

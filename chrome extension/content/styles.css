@@ -1,30 +1,10 @@
-/**
- * Styles for LinkedIn Feed Filter Extension
- * 
- * Implements Discord-style blur overlay UI that:
- * - Preserves DOM structure (no height collapse)
- * - Uses overlay positioning to avoid scroll jank
- * - Maintains virtualization compatibility
- * 
- * Performance choices:
- * - Absolute positioning prevents layout shifts
- * - Blur filter is GPU-accelerated
- * - Z-index ensures overlay visibility without breaking LinkedIn's UI
- */
-
-/* Blur effect for posts being filtered */
 .linkedin-filter-blurred {
-  /* Preserve aspect ratio and prevent layout shift */
   position: relative;
-  /* Ensure overlay can be positioned absolutely */
   overflow: hidden;
-  /* Create a new stacking context to contain the overlay */
   isolation: isolate;
-  /* Ensure z-index is lower than LinkedIn's header */
   z-index: 1;
 }
 
-/* Blur only the text content, not the entire container */
 .linkedin-filter-blurred .feed-shared-update-v2__description,
 .linkedin-filter-blurred .feed-shared-text,
 .linkedin-filter-blurred .feed-shared-update__description,
@@ -34,31 +14,23 @@
   filter: blur(8px);
 }
 
-/* Overlay container - positioned absolutely to avoid affecting layout */
 .linkedin-filter-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  /* Semi-transparent background for Discord-style aesthetic */
   background: rgba(255, 255, 255, 0.95);
-  /* Dark mode support */
   background: rgba(var(--color-background-base, 255, 255, 255), 0.95);
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Lower z-index to ensure it doesn't cover LinkedIn's header (which uses ~100-200) */
   z-index: 10;
-  /* Ensure overlay is clickable */
   pointer-events: auto;
-  /* Smooth appearance */
   animation: linkedin-filter-fade-in 0.2s ease-in;
-  /* Ensure overlay is contained within the post element */
   isolation: isolate;
 }
 
-/* Dark mode adaptation */
 @media (prefers-color-scheme: dark) {
   .linkedin-filter-overlay {
     background: rgba(0, 0, 0, 0.9);
@@ -66,12 +38,10 @@
   }
 }
 
-/* Message container - centered content */
 .linkedin-filter-message {
   text-align: center;
   padding: 3rem;
   max-width: 600px;
-  /* Ensure readability */
   color: #000;
 }
 
@@ -81,7 +51,6 @@
   }
 }
 
-/* Title styling */
 .linkedin-filter-title {
   font-size: 2.25rem;
   font-weight: 600;
@@ -89,7 +58,6 @@
   color: inherit;
 }
 
-/* Subtitle styling */
 .linkedin-filter-subtitle {
   font-size: 1.5rem;
   margin: 0 0 1.5rem 0;
@@ -98,7 +66,6 @@
   line-height: 1.5;
 }
 
-/* Reveal button - LinkedIn blue */
 .linkedin-filter-reveal-button {
   background-color: #0a66c2;
   border: none;
@@ -109,9 +76,7 @@
   font-size: 1.5rem;
   color: #fff;
   transition: background-color 0.2s ease, transform 0.1s ease;
-  /* Prevent text selection */
   user-select: none;
-  /* Ensure button is clickable */
   pointer-events: auto;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -127,7 +92,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Fade-in animation for overlay */
 @keyframes linkedin-filter-fade-in {
   from {
     opacity: 0;
@@ -137,25 +101,18 @@
   }
 }
 
-/* Ensure posts maintain their natural height */
 .linkedin-filter-blurred article,
 .linkedin-filter-blurred .feed-shared-update-v2 {
-  /* Preserve original dimensions */
   min-height: inherit;
   height: auto;
 }
 
-/* Prevent overlay from interfering with LinkedIn's interactive elements */
 .linkedin-filter-overlay * {
-  /* Reset any inherited pointer-events that might block interactions */
   pointer-events: auto;
 }
 
-/* Ensure overlay doesn't break LinkedIn's layout calculations */
 .linkedin-filter-blurred {
-  /* Maintain original box model */
   box-sizing: border-box;
-  /* Preserve margins and padding */
   margin: inherit;
   padding: inherit;
 }
