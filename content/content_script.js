@@ -235,8 +235,8 @@ async function categorizePostWithAI(postElement, urn) {
   // Update UI to show "Processing..." while AI categorizes
   window.LinkedInFilter.updateOverlayLabel(postElement, "Processing...");
   
-  // Create prompt for AI categorization
-  const prompt = `Categorize this LinkedIn post. What type of content is this? Be specific and concise. Post: "${postText.substring(0, 1000)}"`;
+  // Create prompt for AI categorization - explicitly request 1-3 words, no markdown
+  const prompt = `Categorize this LinkedIn post in exactly 1-3 words only. Return ONLY the category name with no markdown, stars, asterisks, or formatting. Just the words. Post: "${postText.substring(0, 1000)}"`;
   
   try {
     // Send to background service worker for LLM processing
@@ -251,11 +251,24 @@ async function categorizePostWithAI(postElement, urn) {
       window.LinkedInFilter.updateOverlayLabel(postElement, "Other");
     } else {
       console.log('[LinkedIn Filter] AI categorization for post', urn, ':', response.result);
-      // Update UI with AI's categorization response
-      // Truncate if too long for UI
-      const aiLabel = response.result.length > 50 
-        ? response.result.substring(0, 47) + '...' 
-        : response.result;
+      
+      // Clean up the response: remove markdown formatting, extra whitespace, and limit to 3 words
+      let aiLabel = response.result
+        .replace(/\*\*/g, '') // Remove bold markdown
+        .replace(/\*/g, '') // Remove any remaining asterisks
+        .replace(/#/g, '') // Remove hash marks
+        .replace(/\[|\]/g, '') // Remove brackets
+        .trim();
+      
+      // Extract first 1-3 words only
+      const words = aiLabel.split(/\s+/).slice(0, 3);
+      aiLabel = words.join(' ');
+      
+      // Fallback if empty
+      if (!aiLabel || aiLabel.length === 0) {
+        aiLabel = "Other";
+      }
+      
       window.LinkedInFilter.updateOverlayLabel(postElement, aiLabel);
     }
   } catch (error) {
