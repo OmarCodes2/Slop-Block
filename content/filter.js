@@ -307,7 +307,7 @@ function normalizeText(text) {
  * @param {Element} postElement - The post article element
  * @returns {string} - The extracted text content
  */
-function extractPostText(postElement) {
+window.LinkedInFilter.extractPostText = function(postElement) {
   if (!postElement) return '';
   
   // Try multiple selectors to find the post text content
@@ -347,7 +347,7 @@ function extractPostText(postElement) {
   }
   
   return textContent;
-}
+};
 
 /**
  * Check if text matches any phrase in a list
@@ -403,7 +403,7 @@ function matchesRegex(text, regexes) {
  */
 window.LinkedInFilter.classifyPost = function(postElement) {
   // Extract post text
-  const postText = extractPostText(postElement);
+  const postText = window.LinkedInFilter.extractPostText(postElement);
   const normalizedText = normalizeText(postText);
   
   // Check hiring phrases and regex first (highest precedence)

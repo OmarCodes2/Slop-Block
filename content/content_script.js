@@ -201,6 +201,11 @@ function scanForPostArticles(root) {
       shouldBlock = !filterSettings.showCongrats;
     } else if (classification === "other") {
       shouldBlock = !filterSettings.showOther;
+      
+      // If post is classified as "other" and will be blocked, categorize it with AI
+      if (shouldBlock) {
+        categorizePostWithAI(article, urn);
+      }
     } else {
       // Fallback - block by default (conservative approach)
       shouldBlock = true;
@@ -209,6 +214,41 @@ function scanForPostArticles(root) {
     if (shouldBlock) {
       blockPost(article, urn, classification);
     }
+  }
+}
+
+/**
+ * Categorize a post with AI when it's classified as "other"
+ * 
+ * @param {Element} postElement - The post article element
+ * @param {string} urn - The URN identifier
+ */
+async function categorizePostWithAI(postElement, urn) {
+  // Extract post text using the filter function
+  const postText = window.LinkedInFilter.extractPostText(postElement);
+  
+  if (!postText || !postText.trim()) {
+    console.log('[LinkedIn Filter] No text found for post:', urn);
+    return;
+  }
+  
+  // Create prompt for AI categorization
+  const prompt = `Categorize this LinkedIn post. What type of content is this? Be specific and concise. Post: "${postText.substring(0, 1000)}"`;
+  
+  try {
+    // Send to background service worker for LLM processing
+    const response = await chrome.runtime.sendMessage({
+      action: "llm",
+      text: prompt
+    });
+    
+    if (response.error) {
+      console.error('[LinkedIn Filter] AI categorization error:', response.error);
+    } else {
+      console.log('[LinkedIn Filter] AI categorization for post', urn, ':', response.result);
+    }
+  } catch (error) {
+    console.error('[LinkedIn Filter] Failed to categorize post with AI:', error);
   }
 }
 

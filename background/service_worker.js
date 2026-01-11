@@ -10,6 +10,8 @@
  * - Async message handling allows non-blocking background processing
  */
 
+import { callGeminiLLM } from "./geminiClient.js";
+
 // Queue management: max 1-2 inflight AI calls, dedupe by postKey
 const aiQueue = {
   inflight: new Set(), // Track postKeys currently being classified
@@ -172,7 +174,7 @@ Post: "${cleanedText}"`;
 
 /**
  * Message listener for content script communication
- * Handles 'availability' and 'classify' actions
+ * Handles 'availability', 'classify', and 'llm' actions
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'availability') {
@@ -183,6 +185,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ available: false });
     });
     return true; // Indicates asynchronous response
+  }
+
+  if (message.action === 'llm') {
+    // Handle LLM categorization requests
+    (async () => {
+      try {
+        const result = await callGeminiLLM(message.text);
+        sendResponse({ result });
+      } catch (err) {
+        sendResponse({ error: err.message });
+      }
+    })();
+    return true; // async
   }
 
   if (message.action === 'classify') {
