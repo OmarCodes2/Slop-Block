@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="slopblocklogo.png" alt="Slop Block Logo" width="300">
+</div>
+
 # Slop Block
 
 Filter your LinkedIn feed to show only recruiter hiring posts. Clean your feed from noise and focus on what matters.
