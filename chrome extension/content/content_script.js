@@ -16,20 +16,20 @@ const blockedUrns = new Set(); // URNs that are currently blocked
 // Categories marked "HIDE" are set to false (hidden by default)
 // Categories marked "ALLOW" or "OPTIONAL" are set to true (shown by default)
 let filterSettings = {
-  showHiringPosts: true, // ALLOW
-  showJobAnnouncements: true, // HIDE (but keeping true for backward compatibility)
-  showGrindset: true, // HIDE (but keeping true for backward compatibility)
-  showAiDoomer: true, // HIDE (but keeping true for backward compatibility)
-  showChildProdigy: true, // HIDE (but keeping true for backward compatibility)
+  showHiringPosts: true, // ALLOW - only default enabled toggle
+  showJobAnnouncements: false, // HIDE
+  showGrindset: false, // HIDE
+  showAiDoomer: false, // HIDE
+  showChildProdigy: false, // HIDE
   showSponsored: false, // HIDE
   showSalesPitch: false, // HIDE
-  showJobSeeking: true, // User's call - defaulting to show
+  showJobSeeking: false, // HIDE
   showEvents: false, // HIDE
   showEngagementBait: false, // HIDE
-  showEducational: true, // OPTIONAL allow
-  showProjectLaunch: true, // OPTIONAL allow
+  showEducational: false, // HIDE
+  showProjectLaunch: false, // HIDE
   showCongrats: false, // HIDE
-  showOther: false // HIDE (never unsure, but hide by default)
+  showOther: false // HIDE
 };
 
 /**
@@ -44,36 +44,36 @@ async function loadFilterSettings() {
     ]);
     filterSettings = {
       showHiringPosts: result.showHiringPosts !== undefined ? result.showHiringPosts : true,
-      showJobAnnouncements: result.showJobAnnouncements !== undefined ? result.showJobAnnouncements : true,
-      showGrindset: result.showGrindset !== undefined ? result.showGrindset : true,
-      showAiDoomer: result.showAiDoomer !== undefined ? result.showAiDoomer : true,
-      showChildProdigy: result.showChildProdigy !== undefined ? result.showChildProdigy : true,
-      showSponsored: result.showSponsored !== undefined ? result.showSponsored : true,
-      showSalesPitch: result.showSalesPitch !== undefined ? result.showSalesPitch : true,
-      showJobSeeking: result.showJobSeeking !== undefined ? result.showJobSeeking : true,
-      showEvents: result.showEvents !== undefined ? result.showEvents : true,
-      showEngagementBait: result.showEngagementBait !== undefined ? result.showEngagementBait : true,
-      showEducational: result.showEducational !== undefined ? result.showEducational : true,
-      showProjectLaunch: result.showProjectLaunch !== undefined ? result.showProjectLaunch : true,
-      showCongrats: result.showCongrats !== undefined ? result.showCongrats : true,
-      showOther: result.showOther !== undefined ? result.showOther : true
+      showJobAnnouncements: result.showJobAnnouncements !== undefined ? result.showJobAnnouncements : false,
+      showGrindset: result.showGrindset !== undefined ? result.showGrindset : false,
+      showAiDoomer: result.showAiDoomer !== undefined ? result.showAiDoomer : false,
+      showChildProdigy: result.showChildProdigy !== undefined ? result.showChildProdigy : false,
+      showSponsored: result.showSponsored !== undefined ? result.showSponsored : false,
+      showSalesPitch: result.showSalesPitch !== undefined ? result.showSalesPitch : false,
+      showJobSeeking: result.showJobSeeking !== undefined ? result.showJobSeeking : false,
+      showEvents: result.showEvents !== undefined ? result.showEvents : false,
+      showEngagementBait: result.showEngagementBait !== undefined ? result.showEngagementBait : false,
+      showEducational: result.showEducational !== undefined ? result.showEducational : false,
+      showProjectLaunch: result.showProjectLaunch !== undefined ? result.showProjectLaunch : false,
+      showCongrats: result.showCongrats !== undefined ? result.showCongrats : false,
+      showOther: result.showOther !== undefined ? result.showOther : false
     };
   } catch (error) {
     console.error('[LinkedIn Filter] Error loading settings:', error);
     // Use defaults
     filterSettings = {
       showHiringPosts: true,
-      showJobAnnouncements: true,
-      showGrindset: true,
-      showAiDoomer: true,
-      showChildProdigy: true,
+      showJobAnnouncements: false,
+      showGrindset: false,
+      showAiDoomer: false,
+      showChildProdigy: false,
       showSponsored: false,
       showSalesPitch: false,
-      showJobSeeking: true,
+      showJobSeeking: false,
       showEvents: false,
       showEngagementBait: false,
-      showEducational: true,
-      showProjectLaunch: true,
+      showEducational: false,
+      showProjectLaunch: false,
       showCongrats: false,
       showOther: false
     };

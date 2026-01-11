@@ -8,20 +8,20 @@
 // Categories marked "HIDE" are set to false (hidden by default)
 // Categories marked "ALLOW" or "OPTIONAL" are set to true (shown by default)
 const DEFAULT_SETTINGS = {
-  showHiringPosts: true, // ALLOW
-  showJobAnnouncements: true, // HIDE (but keeping true for backward compatibility)
-  showGrindset: true, // HIDE (but keeping true for backward compatibility)
-  showAiDoomer: true, // HIDE (but keeping true for backward compatibility)
-  showChildProdigy: true, // HIDE (but keeping true for backward compatibility)
+  showHiringPosts: true, // ALLOW - only default enabled toggle
+  showJobAnnouncements: false, // HIDE
+  showGrindset: false, // HIDE
+  showAiDoomer: false, // HIDE
+  showChildProdigy: false, // HIDE
   showSponsored: false, // HIDE
   showSalesPitch: false, // HIDE
-  showJobSeeking: true, // User's call - defaulting to show
+  showJobSeeking: false, // HIDE
   showEvents: false, // HIDE
   showEngagementBait: false, // HIDE
-  showEducational: true, // OPTIONAL allow
-  showProjectLaunch: true, // OPTIONAL allow
+  showEducational: false, // HIDE
+  showProjectLaunch: false, // HIDE
   showCongrats: false, // HIDE
-  showOther: false // HIDE (never unsure, but hide by default)
+  showOther: false // HIDE
 };
 
 // Load settings from storage
