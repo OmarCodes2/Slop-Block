@@ -59,7 +59,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #e0e0e0;
 }
 
@@ -70,7 +70,7 @@ body {
 .toggle-label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
   margin-right: 16px;
 }
@@ -140,6 +140,34 @@ body {
 
 .toggle-switch:hover .toggle-slider {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Collapsible "More filters" button and container */
+.more-toggle {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 8px 0;
+  color: #666666;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.more-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.12);
+}
+
+.more-filters {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.22s ease;
+}
+
+.more-filters.open {
+  max-height: 1000px; /* large enough to contain items */
 }
 
 /* Dark mode support */

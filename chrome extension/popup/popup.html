@@ -71,103 +71,107 @@
           </label>
         </div>
         
-        <div class="toggle-item">
-          <div class="toggle-label">
-            <span class="toggle-name">Sponsored/Ads</span>
-            <span class="toggle-description">Show promoted and sponsored posts</span>
+        <button class="more-toggle" aria-expanded="false" aria-controls="more-filters">More filters ▾</button>
+
+        <div id="more-filters" class="more-filters" aria-hidden="true">
+          <div class="toggle-item">
+            <div class="toggle-label">
+              <span class="toggle-name">Sponsored/Ads</span>
+              <span class="toggle-description">Show promoted and sponsored posts</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-sponsored">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-sponsored">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="toggle-item">
-          <div class="toggle-label">
-            <span class="toggle-name">Sales Pitch</span>
-            <span class="toggle-description">Show sales and lead generation posts</span>
+
+          <div class="toggle-item">
+            <div class="toggle-label">
+              <span class="toggle-name">Sales Pitch</span>
+              <span class="toggle-description">Show sales and lead generation posts</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-sales-pitch">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-sales-pitch">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="toggle-item">
-          <div class="toggle-label">
-            <span class="toggle-name">Job Seeking</span>
-            <span class="toggle-description">Show open-to-work and layoff posts</span>
+
+          <div class="toggle-item">
+            <div class="toggle-label">
+              <span class="toggle-name">Job Seeking</span>
+              <span class="toggle-description">Show open-to-work and layoff posts</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-job-seeking">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-job-seeking">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="toggle-item">
-          <div class="toggle-label">
-            <span class="toggle-name">Events/Webinars</span>
-            <span class="toggle-description">Show event and webinar announcements</span>
+
+          <div class="toggle-item">
+            <div class="toggle-label">
+              <span class="toggle-name">Events/Webinars</span>
+              <span class="toggle-description">Show event and webinar announcements</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-events">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-events">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="toggle-item">
-          <div class="toggle-label">
-            <span class="toggle-name">Engagement Bait</span>
-            <span class="toggle-description">Show comment traps and engagement farming</span>
+
+          <div class="toggle-item">
+            <div class="toggle-label">
+              <span class="toggle-name">Engagement Bait</span>
+              <span class="toggle-description">Show comment traps and engagement farming</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-engagement-bait">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-engagement-bait">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="toggle-item">
-          <div class="toggle-label">
-            <span class="toggle-name">Educational/Tips</span>
-            <span class="toggle-description">Show educational content and tips</span>
+
+          <div class="toggle-item">
+            <div class="toggle-label">
+              <span class="toggle-name">Educational/Tips</span>
+              <span class="toggle-description">Show educational content and tips</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-educational">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-educational">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="toggle-item">
-          <div class="toggle-label">
-            <span class="toggle-name">Project Launch</span>
-            <span class="toggle-description">Show project launches and shipping posts</span>
+
+          <div class="toggle-item">
+            <div class="toggle-label">
+              <span class="toggle-name">Project Launch</span>
+              <span class="toggle-description">Show project launches and shipping posts</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-project-launch">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-project-launch">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="toggle-item">
-          <div class="toggle-label">
-            <span class="toggle-name">Congrats/Certs</span>
-            <span class="toggle-description">Show congratulations and certification posts</span>
+
+          <div class="toggle-item">
+            <div class="toggle-label">
+              <span class="toggle-name">Congrats/Certs</span>
+              <span class="toggle-description">Show congratulations and certification posts</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-congrats">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-congrats">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="toggle-item">
-          <div class="toggle-label">
-            <span class="toggle-name">Other</span>
-            <span class="toggle-description">Show posts that don't match other categories</span>
+
+          <div class="toggle-item">
+            <div class="toggle-label">
+              <span class="toggle-name">Other</span>
+              <span class="toggle-description">Show posts that don't match other categories</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-other">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-other">
-            <span class="toggle-slider"></span>
-          </label>
         </div>
       </div>
     </div>
