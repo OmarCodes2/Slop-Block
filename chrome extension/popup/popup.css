@@ -24,7 +24,7 @@ body {
 
 .popup-header {
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0A66C2 0%, #7945f3 100%);
   color: #ffffff;
   text-align: center;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -127,7 +127,7 @@ body {
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #667eea;
+  background-color: #0A66C2;
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
@@ -135,7 +135,7 @@ body {
 }
 
 .toggle-switch input:focus + .toggle-slider {
-  box-shadow: 0 0 1px #667eea;
+  box-shadow: 0 0 1px #0A66C2;
 }
 
 .toggle-switch:hover .toggle-slider {
