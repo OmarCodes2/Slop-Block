@@ -21,8 +21,13 @@ document.addEventListener("DOMContentLoaded", function () {
   if (downloadBtn) {
     downloadBtn.addEventListener("click", function (e) {
       e.preventDefault();
-      // Redirect to GitHub repository
-      window.open("https://github.com/OmarCodes2/Slop-Block/archive/refs/heads/main.zip", "_blank");
+      // Download the extension zip file
+      const link = document.createElement("a");
+      link.href = "slop-block-extension.zip";
+      link.download = "slop-block-extension.zip";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     });
   }
 });
