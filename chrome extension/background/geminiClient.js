@@ -45,3 +45,13 @@ export async function callGeminiLLM(text) {
   // prompt() takes only the text
   return await session.prompt(text);
 }
+
+/**
+ * Warm up / initialize the LM session ahead of requests.
+ * Call this from the service worker to pre-create the session so
+ * the first real request is fast.
+ */
+export async function warmupSession() {
+  await getSession();
+  return true;
+}

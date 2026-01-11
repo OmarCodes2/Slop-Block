@@ -83,6 +83,28 @@ async function loadFilterSettings() {
 // Load settings on initialization
 loadFilterSettings();
 
+// Track whether we've already requested an LM warmup
+let llmWarmed = false;
+
+function warmUpLLM() {
+  if (llmWarmed) return;
+  llmWarmed = true;
+  try {
+    chrome.runtime.sendMessage({ action: 'llm_warmup' }, (response) => {
+      if (response && response.ok) {
+        console.log('[LinkedIn Filter] LLM warmup succeeded');
+      } else if (response && response.error) {
+        console.warn('[LinkedIn Filter] LLM warmup error:', response.error);
+      } else {
+        console.log('[LinkedIn Filter] LLM warmup response:', response);
+      }
+    });
+  } catch (e) {
+    // Non-fatal: don't block initialization
+    console.warn('[LinkedIn Filter] Failed to send LLM warmup message', e);
+  }
+}
+
 /**
  * Extract activity URN from an element
  * Returns the data-urn if it's a valid activity URN, else null
@@ -485,11 +507,15 @@ function reinitializeFeedObserver() {
 function startInitialization() {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+      // Warm up LLM session immediately and then initialize
+      warmUpLLM();
       // Wait a bit for LinkedIn's JS to initialize
       setTimeout(initializeFeedObserver, 100);
     });
   } else if (document.readyState === 'interactive' || document.readyState === 'complete') {
     // DOM already loaded, but wait for LinkedIn's feed to potentially load
+    // Warm up LLM session immediately and then initialize
+    warmUpLLM();
     setTimeout(initializeFeedObserver, 100);
   } else {
     // Fallback: initialize immediately
