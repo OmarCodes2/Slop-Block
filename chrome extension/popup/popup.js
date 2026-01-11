@@ -144,6 +144,18 @@ async function initializePopup() {
   addToggleListener('toggle-project-launch');
   addToggleListener('toggle-congrats');
   addToggleListener('toggle-other');
+
+  // Setup "More filters" collapsible behavior
+  const moreBtn = document.querySelector('.more-toggle');
+  const moreContainer = document.getElementById('more-filters');
+  if (moreBtn && moreContainer) {
+    moreBtn.addEventListener('click', () => {
+      const open = moreContainer.classList.toggle('open');
+      moreBtn.setAttribute('aria-expanded', String(open));
+      moreContainer.setAttribute('aria-hidden', String(!open));
+      moreBtn.textContent = open ? 'More filters ▴' : 'More filters ▾';
+    });
+  }
 }
 
 // Initialize when DOM is ready
