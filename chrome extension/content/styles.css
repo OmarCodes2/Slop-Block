@@ -98,17 +98,16 @@
   line-height: 1.5;
 }
 
-/* Reveal button - Discord-style warning button */
+/* Reveal button - LinkedIn blue */
 .linkedin-filter-reveal-button {
-  background-color: #ffcc00;
-  background-color: var(--color-warning, #ffcc00);
+  background-color: #0a66c2;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
   font-size: 1rem;
-  color: #000;
+  color: #fff;
   transition: background-color 0.2s ease, transform 0.1s ease;
   /* Prevent text selection */
   user-select: none;
@@ -118,8 +117,7 @@
 }
 
 .linkedin-filter-reveal-button:hover {
-  background-color: #ffd633;
-  background-color: var(--color-warning-hover, #ffd633);
+  background-color: #004182;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
