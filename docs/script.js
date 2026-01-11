@@ -80,7 +80,40 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Intersection Observer for scroll animations
+// Count-up animation for category count
+function animateCountUp(element, target, duration = 1000) {
+  const start = 0;
+  const increment = target / (duration / 16); // 60fps
+  let current = start;
+  
+  const timer = setInterval(() => {
+    current += increment;
+    if (current >= target) {
+      element.textContent = target;
+      clearInterval(timer);
+    } else {
+      element.textContent = Math.floor(current);
+    }
+  }, 16);
+}
+
+// Initialize count-up when section is visible
+const categoryCountElement = document.querySelector(".category-count");
+if (categoryCountElement) {
+  const countObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const target = parseInt(entry.target.getAttribute("data-target"));
+        animateCountUp(entry.target, target);
+        countObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  
+  countObserver.observe(categoryCountElement);
+}
+
+// Intersection Observer for scroll animations with staggered delays
 if (
   "IntersectionObserver" in window &&
   !window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -98,13 +131,38 @@ if (
     });
   }, observerOptions);
 
-  // Observe all animatable elements
+  // Observe feature cards and pipeline steps
   document
-    .querySelectorAll(".feature-card, .category-item, .pipeline-step")
+    .querySelectorAll(".feature-card, .pipeline-step")
     .forEach((el) => {
       observer.observe(el);
     });
+
+  // Staggered animations for category items
+  const categoryObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting && !entry.target.classList.contains("visible")) {
+        const categoryItems = Array.from(
+          document.querySelectorAll(".category-item")
+        );
+        const index = categoryItems.indexOf(entry.target);
+        
+        // Stagger the animation with delays
+        setTimeout(() => {
+          entry.target.classList.add("visible");
+        }, index * 50); // 50ms delay between each item
+        
+        categoryObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: "0px 0px -100px 0px" });
+
+  // Observe all category items
+  document.querySelectorAll(".category-item").forEach((el) => {
+    categoryObserver.observe(el);
+  });
 }
+
 
 // Navbar background on scroll
 let lastScroll = 0;
