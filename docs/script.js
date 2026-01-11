@@ -15,21 +15,15 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 // Download button handler
-document.getElementById('downloadBtn').addEventListener('click', function() {
-    // Create a dummy file download
-    const dummyContent = 'Slop Block Chrome Extension\n\nThis is a placeholder download.\n\nTo install Slop Block:\n1. Clone the repository\n2. Open Chrome and navigate to chrome://extensions/\n3. Enable "Developer mode"\n4. Click "Load unpacked"\n5. Select the extension directory\n\nVisit the GitHub repository for more information.';
-    const blob = new Blob([dummyContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'slop-block-install.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    // Show a notification
-    showNotification('Download started! Check your downloads folder.');
+document.addEventListener('DOMContentLoaded', function() {
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Redirect to GitHub repository
+            window.open('https://github.com/OmarCodes2/Slop-Block', '_blank');
+        });
+    }
 });
 
 // Show notification function
