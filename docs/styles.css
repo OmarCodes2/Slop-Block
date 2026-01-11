@@ -937,7 +937,7 @@ section {
     border-radius: 16px;
     border: 1px solid var(--border-color);
     overflow: hidden;
-    max-width: 600px;
+    max-width: 900px;
     width: 100%;
     box-shadow: var(--shadow-xl);
 }
@@ -985,6 +985,16 @@ section {
 .demo-post.blurred {
     filter: blur(4px);
     opacity: 0.6;
+}
+
+/* GIF used for the demo preview */
+.demo-gif {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+    object-fit: cover;
+    max-height: 720px;
 }
 
 .demo-post-header {
