@@ -383,8 +383,8 @@ function matchesRegex(text, regexes) {
  * Classify a post based on phrase and regex matching
  * 
  * Precedence:
- * 1) If matches hiring phrases/regex → return "hiring"
- * 2) Else if matches hired announcement phrases/regex → return "hired_announcement"
+ * 1) If matches hired announcement phrases/regex → return "hired_announcement"
+ * 2) Else if matches hiring phrases/regex → return "hiring"
  * 3) Else if matches grindset phrases/regex → return "grindset"
  * 4) Else if matches AI doomer phrases/regex → return "ai_doomer"
  * 5) Else if matches child prodigy phrases/regex → return "child_prodigy"
@@ -406,16 +406,16 @@ window.LinkedInFilter.classifyPost = function(postElement) {
   const postText = window.LinkedInFilter.extractPostText(postElement);
   const normalizedText = normalizeText(postText);
   
-  // Check hiring phrases and regex first (highest precedence)
-  if (matchesPhrases(normalizedText, GUARANTEED_HIRING_PHRASES) || 
-      matchesRegex(postText, GUARANTEED_HIRING_REGEX)) {
-    return "hiring";
-  }
-  
   // Check hired announcement phrases and regex
   if (matchesPhrases(normalizedText, GUARANTEED_HIRED_ANNOUNCEMENT_PHRASES) || 
       matchesRegex(postText, GUARANTEED_HIRED_ANNOUNCEMENT_REGEX)) {
     return "hired_announcement";
+  }
+  
+  // Check hiring phrases and regex second (higher precedence than others)
+  if (matchesPhrases(normalizedText, GUARANTEED_HIRING_PHRASES) || 
+      matchesRegex(postText, GUARANTEED_HIRING_REGEX)) {
+    return "hiring";
   }
   
   // Check grindset phrases and regex
@@ -480,6 +480,8 @@ window.LinkedInFilter.classifyPost = function(postElement) {
   if (matchesRegex(postText, CONGRATS_CERTS_REGEX)) {
     return "congrats";
   }
+  
+  
   
   // Default: other (never unsure)
   return "other";
