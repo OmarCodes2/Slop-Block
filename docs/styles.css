@@ -305,6 +305,10 @@ section {
     padding: 100px 0;
     position: relative;
     overflow: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 /* Section Background Base */
@@ -1067,11 +1071,23 @@ section {
     color: white;
 }
 
+/* Download Section with Footer Wrapper */
+.download-footer-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 /* Download Section */
 .download {
     background: var(--dark-bg);
     text-align: center;
     position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0; /* Override general section min-height */
 }
 
 .download .container {
