@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Slop Block - Filter LinkedIn feed to show only recruiter hiring posts. Clean your feed from noise and focus on what matters.">
+    <title>Slop Block - Clean Your LinkedIn Feed</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <span class="logo-icon">🚫</span>
+                    <span class="logo-text">Slop Block</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#download" class="nav-cta">Download</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-background">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span>✨ Powered by Hybrid AI Classification</span>
+                </div>
+                <h1 class="hero-title">
+                    Block the <span class="gradient-text">Slop</span>.<br>
+                    Find the <span class="gradient-text">Jobs</span>.
+                </h1>
+                <p class="hero-description">
+                    Slop Block filters your LinkedIn feed to show only recruiter hiring posts. 
+                    Say goodbye to job announcements, grindset posts, and engagement bait. 
+                    Focus on what matters: real opportunities.
+                </p>
+                <div class="hero-cta">
+                    <a href="#download" class="btn btn-primary">
+                        <span>Download Extension</span>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 3V17M10 17L15 12M10 17L5 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="#how-it-works" class="btn btn-secondary">Learn More</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">13+</div>
+                        <div class="stat-label">Post Categories</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">AI</div>
+                        <div class="stat-label">Hybrid Classification</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Free & Open</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Why Slop Block?</h2>
+                <p class="section-description">Take control of your LinkedIn feed with intelligent filtering</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3 class="feature-title">Precision Filtering</h3>
+                    <p class="feature-description">
+                        Hybrid classification system combines local heuristics with AI to accurately identify recruiter hiring posts.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Lightning Fast</h3>
+                    <p class="feature-description">
+                        Local heuristics run first for instant results. AI only kicks in for uncertain cases, keeping everything snappy.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3 class="feature-title">Privacy First</h3>
+                    <p class="feature-description">
+                        All processing happens locally. Uses Chrome's built-in LanguageModel API - no data sent to external servers.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3 class="feature-title">Customizable</h3>
+                    <p class="feature-description">
+                        Toggle 13+ post categories on/off. Show what you want, hide what you don't. Your feed, your rules.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3 class="feature-title">Real-time Updates</h3>
+                    <p class="feature-description">
+                        Automatically processes new posts as they appear. Works seamlessly with LinkedIn's infinite scroll.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💪</div>
+                    <h3 class="feature-title">Performance Optimized</h3>
+                    <p class="feature-description">
+                        Virtualization-safe design. No layout shifts, no scroll jank. Your LinkedIn experience stays smooth.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">What Gets Filtered?</h2>
+                <p class="section-description">Slop Block identifies and filters 13+ categories of LinkedIn noise</p>
+            </div>
+            <div class="categories-grid">
+                <div class="category-item">
+                    <span class="category-icon">✅</span>
+                    <span class="category-name">Hiring Posts</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">❌</span>
+                    <span class="category-name">Job Announcements</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">❌</span>
+                    <span class="category-name">Grindset Posts</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">❌</span>
+                    <span class="category-name">AI Doomer Content</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">❌</span>
+                    <span class="category-name">Child Prodigy Flex</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">❌</span>
+                    <span class="category-name">Sponsored Ads</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">❌</span>
+                    <span class="category-name">Sales Pitches</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">✅</span>
+                    <span class="category-name">Job Seeking</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">❌</span>
+                    <span class="category-name">Events/Webinars</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">❌</span>
+                    <span class="category-name">Engagement Bait</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">✅</span>
+                    <span class="category-name">Educational Content</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">✅</span>
+                    <span class="category-name">Project Launches</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-icon">❌</span>
+                    <span class="category-name">Congrats/Certs</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-description">Two-stage classification pipeline for maximum accuracy</p>
+            </div>
+            <div class="pipeline">
+                <div class="pipeline-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Local Heuristics</h3>
+                        <p class="step-description">
+                            Fast keyword and phrase matching runs first. Identifies clear signals like "we're hiring", 
+                            "apply now", job announcements, and more. Instant results for obvious cases.
+                        </p>
+                        <div class="step-features">
+                            <span class="step-feature">⚡ Instant</span>
+                            <span class="step-feature">🎯 High Accuracy</span>
+                            <span class="step-feature">🔒 Privacy</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">AI Classification</h3>
+                        <p class="step-description">
+                            For uncertain cases, Chrome's built-in LanguageModel API provides intelligent classification. 
+                            Only escalates when local heuristics can't confidently determine the category.
+                        </p>
+                        <div class="step-features">
+                            <span class="step-feature">🤖 AI-Powered</span>
+                            <span class="step-feature">🧠 Context-Aware</span>
+                            <span class="step-feature">🛡️ On-Device</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="demo">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">See It In Action</h2>
+                <p class="section-description">Clean, blurred overlays keep your feed organized</p>
+            </div>
+            <div class="demo-container">
+                <div class="demo-card">
+                    <div class="demo-header">
+                        <div class="demo-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="demo-title">LinkedIn Feed</div>
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-post blurred">
+                            <div class="demo-post-header">
+                                <div class="demo-avatar"></div>
+                                <div class="demo-post-info">
+                                    <div class="demo-name"></div>
+                                    <div class="demo-meta"></div>
+                                </div>
+                            </div>
+                            <div class="demo-post-body">
+                                <div class="demo-line"></div>
+                                <div class="demo-line short"></div>
+                            </div>
+                            <div class="demo-overlay">
+                                <span class="overlay-label">⚠️ Grindset</span>
+                            </div>
+                        </div>
+                        <div class="demo-post">
+                            <div class="demo-post-header">
+                                <div class="demo-avatar"></div>
+                                <div class="demo-post-info">
+                                    <div class="demo-name"></div>
+                                    <div class="demo-meta"></div>
+                                </div>
+                            </div>
+                            <div class="demo-post-body">
+                                <div class="demo-line"></div>
+                                <div class="demo-line"></div>
+                                <div class="demo-line short"></div>
+                            </div>
+                        </div>
+                        <div class="demo-post blurred">
+                            <div class="demo-post-header">
+                                <div class="demo-avatar"></div>
+                                <div class="demo-post-info">
+                                    <div class="demo-name"></div>
+                                    <div class="demo-meta"></div>
+                                </div>
+                            </div>
+                            <div class="demo-post-body">
+                                <div class="demo-line"></div>
+                                <div class="demo-line short"></div>
+                            </div>
+                            <div class="demo-overlay">
+                                <span class="overlay-label">⚠️ Sponsored/Ad</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download">
+        <div class="container">
+            <div class="download-content">
+                <h2 class="download-title">Ready to Clean Your Feed?</h2>
+                <p class="download-description">
+                    Install Slop Block and transform your LinkedIn experience. 
+                    Free, open source, and privacy-focused.
+                </p>
+                <div class="download-cta">
+                    <button class="btn btn-download" id="downloadBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2V16M12 16L16 12M12 16L8 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 18V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Download Extension</span>
+                    </button>
+                    <p class="download-note">Chrome Extension • Coming Soon</p>
+                </div>
+                <div class="download-features">
+                    <div class="download-feature">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M16.6667 5L7.50004 14.1667L3.33337 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Free Forever</span>
+                    </div>
+                    <div class="download-feature">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M16.6667 5L7.50004 14.1667L3.33337 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Open Source</span>
+                    </div>
+                    <div class="download-feature">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M16.6667 5L7.50004 14.1667L3.33337 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Privacy First</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <span class="logo-icon">🚫</span>
+                        <span class="logo-text">Slop Block</span>
+                    </div>
+                    <p class="footer-tagline">Block the slop. Find the jobs.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <a href="#features">Features</a>
+                        <a href="#how-it-works">How It Works</a>
+                        <a href="#download">Download</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Resources</h4>
+                        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+                        <a href="#" target="_blank" rel="noopener">Documentation</a>
+                        <a href="#" target="_blank" rel="noopener">Support</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Slop Block. Made with ❤️ for cleaner LinkedIn feeds.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
