@@ -96,3 +96,19 @@ window.LinkedInFilter.updateOverlayPendingState = function(postElement, isPendin
     overlay.setAttribute('data-pending', isPending ? 'true' : 'false');
   }
 };
+
+/**
+ * Update the label/subtitle text in the overlay
+ * 
+ * @param {Element} postElement - The post DOM element
+ * @param {string} label - The new label text to display
+ */
+window.LinkedInFilter.updateOverlayLabel = function(postElement, label) {
+  const overlay = postElement.querySelector('.linkedin-filter-overlay');
+  if (overlay) {
+    const subtitle = overlay.querySelector('.linkedin-filter-subtitle');
+    if (subtitle) {
+      subtitle.textContent = label;
+    }
+  }
+};

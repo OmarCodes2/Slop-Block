@@ -201,11 +201,6 @@ function scanForPostArticles(root) {
       shouldBlock = !filterSettings.showCongrats;
     } else if (classification === "other") {
       shouldBlock = !filterSettings.showOther;
-      
-      // If post is classified as "other" and will be blocked, categorize it with AI
-      if (shouldBlock) {
-        categorizePostWithAI(article, urn);
-      }
     } else {
       // Fallback - block by default (conservative approach)
       shouldBlock = true;
@@ -213,6 +208,11 @@ function scanForPostArticles(root) {
     
     if (shouldBlock) {
       blockPost(article, urn, classification);
+      
+      // If post is classified as "other" and was blocked, categorize it with AI
+      if (classification === "other") {
+        categorizePostWithAI(article, urn);
+      }
     }
   }
 }
@@ -232,6 +232,9 @@ async function categorizePostWithAI(postElement, urn) {
     return;
   }
   
+  // Update UI to show "Processing..." while AI categorizes
+  window.LinkedInFilter.updateOverlayLabel(postElement, "Processing...");
+  
   // Create prompt for AI categorization
   const prompt = `Categorize this LinkedIn post. What type of content is this? Be specific and concise. Post: "${postText.substring(0, 1000)}"`;
   
@@ -244,11 +247,21 @@ async function categorizePostWithAI(postElement, urn) {
     
     if (response.error) {
       console.error('[LinkedIn Filter] AI categorization error:', response.error);
+      // Update UI to show error or fallback message
+      window.LinkedInFilter.updateOverlayLabel(postElement, "Other");
     } else {
       console.log('[LinkedIn Filter] AI categorization for post', urn, ':', response.result);
+      // Update UI with AI's categorization response
+      // Truncate if too long for UI
+      const aiLabel = response.result.length > 50 
+        ? response.result.substring(0, 47) + '...' 
+        : response.result;
+      window.LinkedInFilter.updateOverlayLabel(postElement, aiLabel);
     }
   } catch (error) {
     console.error('[LinkedIn Filter] Failed to categorize post with AI:', error);
+    // Update UI to show fallback message on error
+    window.LinkedInFilter.updateOverlayLabel(postElement, "Other");
   }
 }
 
