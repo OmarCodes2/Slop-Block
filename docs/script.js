@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     downloadBtn.addEventListener("click", function (e) {
       e.preventDefault();
       // Redirect to GitHub repository
-      window.open("https://github.com/OmarCodes2/Slop-Block", "_blank");
+      window.open("https://github.com/OmarCodes2/Slop-Block/archive/refs/heads/main.zip", "_blank");
     });
   }
 });
