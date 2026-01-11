@@ -24,10 +24,10 @@ body {
 
 .popup-header {
   padding: 20px;
-  background: linear-gradient(135deg, #0A66C2 0%, #7945f3 100%);
-  color: #ffffff;
+  background: #19202f; /* plain light gray */
+  color: #000000;
   text-align: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(175, 175, 175, 0.08);
 }
 
 .app-name {
@@ -35,6 +35,13 @@ body {
   font-weight: 700;
   letter-spacing: 0.5px;
   margin: 0;
+}
+
+.logo {
+  display: block;
+  max-height: 40px;
+  width: auto;
+  margin: 0 auto;
 }
 
 .popup-content {
