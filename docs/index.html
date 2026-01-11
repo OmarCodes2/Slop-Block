@@ -282,9 +282,9 @@
           <div class="installation-step">
             <div class="step-number-badge">6</div>
             <div class="step-content">
-              <h3 class="step-title">Enable Google Gemini API (Optional but Recommended)</h3>
+              <h3 class="step-title">Enable Google Gemini API (Required)</h3>
               <p class="step-description">
-                Slop Block uses Chrome's built-in <strong>LanguageModel API</strong> powered by <strong>Google Gemini Nano</strong> for AI classification. To enable this feature:
+                Slop Block requires Chrome's built-in <strong>LanguageModel API</strong> powered by <strong>Google Gemini Nano</strong> for AI classification. To enable this feature:
               </p>
               <ol style="margin-top: 12px; padding-left: 24px; color: var(--text-secondary);">
                 <li style="margin-bottom: 8px;">Ensure you're using <strong>Chrome Canary or Beta version 127+</strong></li>
@@ -306,7 +306,10 @@
                   class="link-highlight"
                   style="color: white;"
                   >official Google Chrome AI documentation</a
-                >. Note: The extension will still work with local heuristics if the API is not available.
+                >.
+              </p>
+              <p style="margin-top: 12px; color: var(--text-secondary); font-style: italic;">
+                <strong>Note:</strong> The first post you load may take longer to process as Chrome needs to initialize and download the Gemini Nano model. Subsequent posts will process much faster once the model is loaded.
               </p>
             </div>
           </div>
