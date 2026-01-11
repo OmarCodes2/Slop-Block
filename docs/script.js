@@ -1,10 +1,9 @@
-// Smooth scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener("click", function (e) {
     e.preventDefault();
     const target = document.querySelector(this.getAttribute("href"));
     if (target) {
-      const offset = 80; // Account for fixed navbar
+      const offset = 80;
       const targetPosition =
         target.getBoundingClientRect().top + window.pageYOffset - offset;
       window.scrollTo({
@@ -15,13 +14,11 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   });
 });
 
-// Download button handler
 document.addEventListener("DOMContentLoaded", function () {
   const downloadBtn = document.getElementById("downloadBtn");
   if (downloadBtn) {
     downloadBtn.addEventListener("click", function (e) {
       e.preventDefault();
-      // Download the extension zip file
       const link = document.createElement("a");
       link.href = "slop-block-extension.zip";
       link.download = "slop-block-extension.zip";
@@ -32,7 +29,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// Show notification function
 function showNotification(message) {
   const notification = document.createElement("div");
   notification.style.cssText = `
@@ -59,7 +55,6 @@ function showNotification(message) {
   }, 3000);
 }
 
-// Add CSS for notification animations
 const style = document.createElement("style");
 style.textContent = `
     @keyframes slideIn {
@@ -85,10 +80,9 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Count-up animation for category count
 function animateCountUp(element, target, duration = 1000) {
   const start = 0;
-  const increment = target / (duration / 16); // 60fps
+  const increment = target / (duration / 16);
   let current = start;
   
   const timer = setInterval(() => {
@@ -102,7 +96,6 @@ function animateCountUp(element, target, duration = 1000) {
   }, 16);
 }
 
-// Initialize count-up when section is visible
 const categoryCountElement = document.querySelector(".category-count");
 if (categoryCountElement) {
   const countObserver = new IntersectionObserver((entries) => {
@@ -118,7 +111,6 @@ if (categoryCountElement) {
   countObserver.observe(categoryCountElement);
 }
 
-// Intersection Observer for scroll animations with staggered delays
 if (
   "IntersectionObserver" in window &&
   !window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -136,14 +128,12 @@ if (
     });
   }, observerOptions);
 
-  // Observe feature cards and pipeline steps
   document
     .querySelectorAll(".feature-card, .pipeline-step")
     .forEach((el) => {
       observer.observe(el);
     });
 
-  // Staggered animations for category items
   const categoryObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting && !entry.target.classList.contains("visible")) {
@@ -152,24 +142,20 @@ if (
         );
         const index = categoryItems.indexOf(entry.target);
         
-        // Stagger the animation with delays
         setTimeout(() => {
           entry.target.classList.add("visible");
-        }, index * 50); // 50ms delay between each item
+        }, index * 50);
         
         categoryObserver.unobserve(entry.target);
       }
     });
   }, { threshold: 0.1, rootMargin: "0px 0px -100px 0px" });
 
-  // Observe all category items
   document.querySelectorAll(".category-item").forEach((el) => {
     categoryObserver.observe(el);
   });
 }
 
-
-// Navbar background on scroll
 let lastScroll = 0;
 window.addEventListener("scroll", () => {
   const navbar = document.querySelector(".navbar");
@@ -184,7 +170,6 @@ window.addEventListener("scroll", () => {
   lastScroll = currentScroll;
 });
 
-// Parallax effect for hero orbs
 window.addEventListener("scroll", () => {
   const scrolled = window.pageYOffset;
   const orbs = document.querySelectorAll(".gradient-orb");
@@ -197,7 +182,6 @@ window.addEventListener("scroll", () => {
   });
 });
 
-// Add active state to nav links on scroll
 const sections = document.querySelectorAll("section[id]");
 const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
 
