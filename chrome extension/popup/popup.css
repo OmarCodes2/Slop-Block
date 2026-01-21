@@ -63,8 +63,9 @@ body {
 }
 
 .tab-button:hover {
-  background: #004182;
-  color: #ffffff;
+  background: #e5e7eb;
+  color: #0A66C2;
+  border-bottom-color: #0A66C2;
 }
 
 .tab-button.active {
@@ -291,8 +292,9 @@ body {
   }
   
   .tab-button:hover {
-    background: #0A66C2;
-    color: #ffffff;
+    background: #2d3748;
+    color: #0A66C2;
+    border-bottom-color: #0A66C2;
   }
   
   .tab-button.active {
