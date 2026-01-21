@@ -7,8 +7,8 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   width: 380px;
-  background: #fafbfc;
-  color: #1a1a1a;
+  background: #0f1419;
+  color: #e4e4e7;
   overflow: hidden;
 }
 
@@ -16,7 +16,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 600px;
-  background: #ffffff;
+  background: #1a1f2e;
   border-radius: 0;
 }
 
@@ -25,7 +25,7 @@ body {
   background: linear-gradient(135deg, #0A66C2 0%, #004182 100%);
   color: #ffffff;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .app-name {
@@ -45,17 +45,17 @@ body {
 
 .tab-navigation {
   display: flex;
-  background: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
+  background: #2a2a2a;
+  border-bottom: 1px solid #444444;
 }
 
 .tab-button {
   flex: 1;
   padding: 12px 16px;
-  background: #e5e7eb;
+  background: #2d3748;
   border: none;
   border-bottom: 2px solid transparent;
-  color: #666666;
+  color: #aaaaaa;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -63,7 +63,7 @@ body {
 }
 
 .tab-button:hover {
-  background: #e5e7eb;
+  background: #2d3748;
   color: #0A66C2;
   border-bottom-color: #0A66C2;
 }
@@ -71,7 +71,7 @@ body {
 .tab-button.active {
   color: #ffffff !important;
   border-bottom-color: #ffffff;
-  background: #ffffff;
+  background: #1a1f2e;
 }
 
 .tab-button.active::after {
@@ -96,7 +96,7 @@ body {
   padding: 20px;
   flex: 1;
   overflow-y: auto;
-  background: #fafbfc;
+  background: #151923;
 }
 
 .popup-content::-webkit-scrollbar {
@@ -108,12 +108,12 @@ body {
 }
 
 .popup-content::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #374151;
   border-radius: 3px;
 }
 
 .popup-content::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: #4b5563;
 }
 
 .filter-section {
@@ -125,7 +125,7 @@ body {
 .section-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1f2937;
+  color: #e4e4e7;
   margin-bottom: 8px;
 }
 
@@ -134,15 +134,15 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #ffffff;
+  background: #1a1f2e;
   border-radius: 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #2d3748;
   transition: all 0.2s ease;
 }
 
 .toggle-item:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  border-color: #374151;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transform: translateY(-1px);
 }
 
@@ -157,12 +157,12 @@ body {
 .toggle-name {
   font-size: 14px;
   font-weight: 600;
-  color: #1f2937;
+  color: #e4e4e7;
 }
 
 .toggle-description {
   font-size: 12px;
-  color: #6b7280;
+  color: #9ca3af;
   line-height: 1.4;
 }
 
@@ -187,10 +187,10 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #e5e7eb;
+  background: #374151;
   transition: 0.3s;
   border-radius: 24px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .toggle-slider:before {
@@ -200,10 +200,10 @@ body {
   width: 18px;
   left: 3px;
   bottom: 3px;
-  background: #ffffff;
+  background: #e4e4e7;
   transition: 0.3s;
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .toggle-switch input:checked + .toggle-slider {
@@ -220,23 +220,23 @@ body {
 }
 
 .toggle-switch:hover .toggle-slider {
-  background: #d1d5db;
+  background: #4b5563;
 }
 
 .toggle-switch input:checked:hover + .toggle-slider {
-  background: linear-gradient(135deg, #0851a8 0%, #003366 100%);
+  background: linear-gradient(135deg, #1a7ae6 0%, #005199 100%);
 }
 
 .more-toggle {
   display: block;
   width: 100%;
   text-align: center;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #1a1f2e;
+  border: 1px solid #2d3748;
   border-radius: 10px;
   padding: 10px 16px;
   margin-top: 8px;
-  color: #0A66C2;
+  color: #4a9eff;
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
@@ -244,10 +244,10 @@ body {
 }
 
 .more-toggle:hover {
-  background: #f9fafb;
+  background: #252d3d;
   border-color: #0A66C2;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(10, 102, 194, 0.1);
+  box-shadow: 0 2px 4px rgba(10, 102, 194, 0.2);
 }
 
 .more-toggle:focus {
@@ -264,114 +264,4 @@ body {
 
 .more-filters.open {
   max-height: 2000px;
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background: #0f1419;
-    color: #e4e4e7;
-  }
-  
-  .popup-container {
-    background: #1a1f2e;
-  }
-  
-  .popup-header {
-    background: linear-gradient(135deg, #0A66C2 0%, #004182 100%);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
-  
-  .tab-navigation {
-    background: #2a2a2a;
-    border-bottom-color: #444444;
-  }
-  
-  .tab-button {
-    color: #aaaaaa;
-    background: #2d3748;
-  }
-  
-  .tab-button:hover {
-    background: #2d3748;
-    color: #0A66C2;
-    border-bottom-color: #0A66C2;
-  }
-  
-  .tab-button.active {
-    color: #ffffff !important;
-    border-bottom-color: #ffffff;
-    background: #1a1f2e;
-  }
-  
-  .tab-button.active::after {
-    display: none;
-  }
-  
-  .popup-content {
-    background: #151923;
-  }
-  
-  .popup-content::-webkit-scrollbar-thumb {
-    background: #374151;
-  }
-  
-  .popup-content::-webkit-scrollbar-thumb:hover {
-    background: #4b5563;
-  }
-  
-  .section-title {
-    color: #e4e4e7;
-  }
-  
-  .toggle-item {
-    background: #1a1f2e;
-    border-color: #2d3748;
-  }
-  
-  .toggle-item:hover {
-    border-color: #374151;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  .toggle-name {
-    color: #e4e4e7;
-  }
-  
-  .toggle-description {
-    color: #9ca3af;
-  }
-  
-  .toggle-slider {
-    background: #374151;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-  
-  .toggle-slider:before {
-    background: #e4e4e7;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  }
-  
-  .toggle-switch input:checked + .toggle-slider {
-    background: linear-gradient(135deg, #0A66C2 0%, #004182 100%);
-  }
-  
-  .toggle-switch:hover .toggle-slider {
-    background: #4b5563;
-  }
-  
-  .toggle-switch input:checked:hover + .toggle-slider {
-    background: linear-gradient(135deg, #1a7ae6 0%, #005199 100%);
-  }
-  
-  .more-toggle {
-    background: #1a1f2e;
-    border-color: #2d3748;
-    color: #4a9eff;
-  }
-  
-  .more-toggle:hover {
-    background: #252d3d;
-    border-color: #0A66C2;
-    box-shadow: 0 2px 4px rgba(10, 102, 194, 0.2);
-  }
 }
