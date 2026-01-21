@@ -14,14 +14,15 @@ let filterSettings = {
   showEducational: false,
   showProjectLaunch: false,
   showCongrats: false,
-  showOther: false
+  showOther: false,
+  aiEnabled: true
 };
 async function loadFilterSettings() {
   try {
     const result = await chrome.storage.sync.get([
       'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
       'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents', 'showEngagementBait',
-      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther'
+      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled'
     ]);
     filterSettings = {
       showHiringPosts: result.showHiringPosts !== undefined ? result.showHiringPosts : true,
@@ -37,7 +38,8 @@ async function loadFilterSettings() {
       showEducational: result.showEducational !== undefined ? result.showEducational : false,
       showProjectLaunch: result.showProjectLaunch !== undefined ? result.showProjectLaunch : false,
       showCongrats: result.showCongrats !== undefined ? result.showCongrats : false,
-      showOther: result.showOther !== undefined ? result.showOther : false
+      showOther: result.showOther !== undefined ? result.showOther : false,
+      aiEnabled: result.aiEnabled !== undefined ? result.aiEnabled : true
     };
   } catch (error) {
     console.error('[LinkedIn Filter] Error loading settings:', error);
@@ -164,6 +166,12 @@ function scanForPostArticles(root) {
 }
 
 async function categorizePostWithAI(postElement, urn) {
+  // Skip AI processing if disabled in settings
+  if (!filterSettings.aiEnabled) {
+    console.log('[LinkedIn Filter] AI processing disabled, keeping "Other" label');
+    return;
+  }
+  
   const postText = window.LinkedInFilter.extractPostText(postElement);
   
   if (!postText || !postText.trim()) {
