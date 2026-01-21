@@ -12,7 +12,13 @@
       <img src="slopblocklogo.png" alt="Slop Block" class="logo" />
     </div>
     
+    <div class="tab-navigation">
+      <button class="tab-button active" data-tab="filters">Filters</button>
+      <button class="tab-button" data-tab="settings">Settings</button>
+    </div>
+    
     <div class="popup-content">
+      <div id="filters-tab" class="tab-panel active">
       <div class="filter-section">
         <h2 class="section-title">Filter Settings</h2>
         
@@ -172,6 +178,13 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
+        </div>
+      </div>
+      </div>
+      
+      <div id="settings-tab" class="tab-panel">
+        <div class="settings-section">
+          <!-- Settings content will go here -->
         </div>
       </div>
     </div>

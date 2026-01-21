@@ -134,6 +134,24 @@ async function initializePopup() {
       moreBtn.textContent = open ? 'More filters ▴' : 'More filters ▾';
     });
   }
+
+  // Tab navigation
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+  
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const targetTab = button.getAttribute('data-tab');
+      
+      // Remove active class from all buttons and panels
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      tabPanels.forEach(panel => panel.classList.remove('active'));
+      
+      // Add active class to clicked button and corresponding panel
+      button.classList.add('active');
+      document.getElementById(`${targetTab}-tab`).classList.add('active');
+    });
+  });
 }
 
 if (document.readyState === 'loading') {
