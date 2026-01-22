@@ -64,6 +64,14 @@
   color: #000;
 }
 
+.linkedin-filter-lock-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 1rem;
+  opacity: 0.8;
+  display: block;
+}
+
 @media (prefers-color-scheme: dark) {
   .linkedin-filter-message {
     color: #fff;

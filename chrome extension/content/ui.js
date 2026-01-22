@@ -19,6 +19,9 @@ window.LinkedInFilter.blurPost = function(postElement, isPending = false, label 
   if (opaqueMode) {
     overlay.innerHTML = `
       <div class="linkedin-filter-message">
+        <svg class="linkedin-filter-lock-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 1a5 5 0 0 0-5 5v4H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V12a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm0 2a3 3 0 0 1 3 3v4H9V6a3 3 0 0 1 3-3z"/>
+        </svg>
         <h3 class="linkedin-filter-title">Post Blocked</h3>
       </div>
     `;
@@ -97,6 +100,9 @@ window.LinkedInFilter.updateOverlayStyle = function(postElement, opaqueMode = fa
   if (message) {
     if (opaqueMode) {
       message.innerHTML = `
+        <svg class="linkedin-filter-lock-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 1a5 5 0 0 0-5 5v4H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V12a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm0 2a3 3 0 0 1 3 3v4H9V6a3 3 0 0 1 3-3z"/>
+        </svg>
         <h3 class="linkedin-filter-title">Post Blocked</h3>
       `;
     } else {
