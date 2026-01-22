@@ -14,14 +14,16 @@ let filterSettings = {
   showEducational: false,
   showProjectLaunch: false,
   showCongrats: false,
-  showOther: false
+  showOther: false,
+  aiEnabled: true,
+  opaqueOverlay: false
 };
 async function loadFilterSettings() {
   try {
     const result = await chrome.storage.sync.get([
       'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
       'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents', 'showEngagementBait',
-      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther'
+      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled', 'opaqueOverlay'
     ]);
     filterSettings = {
       showHiringPosts: result.showHiringPosts !== undefined ? result.showHiringPosts : true,
@@ -37,7 +39,9 @@ async function loadFilterSettings() {
       showEducational: result.showEducational !== undefined ? result.showEducational : false,
       showProjectLaunch: result.showProjectLaunch !== undefined ? result.showProjectLaunch : false,
       showCongrats: result.showCongrats !== undefined ? result.showCongrats : false,
-      showOther: result.showOther !== undefined ? result.showOther : false
+      showOther: result.showOther !== undefined ? result.showOther : false,
+      aiEnabled: result.aiEnabled !== undefined ? result.aiEnabled : true,
+      opaqueOverlay: result.opaqueOverlay !== undefined ? result.opaqueOverlay : false
     };
   } catch (error) {
     console.error('[LinkedIn Filter] Error loading settings:', error);
@@ -164,6 +168,12 @@ function scanForPostArticles(root) {
 }
 
 async function categorizePostWithAI(postElement, urn) {
+  // Skip AI processing if disabled in settings
+  if (!filterSettings.aiEnabled) {
+    console.log('[LinkedIn Filter] AI processing disabled, keeping "Other" label');
+    return;
+  }
+  
   const postText = window.LinkedInFilter.extractPostText(postElement);
   
   if (!postText || !postText.trim()) {
@@ -253,7 +263,7 @@ function blockPost(postElement, urn, classification) {
     label = "Other";
   }
   
-  window.LinkedInFilter.blurPost(postElement, false, label);
+  window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay);
 }
 
 function findFeedContainer() {
@@ -482,9 +492,25 @@ async function reEvaluateAllPosts() {
     }
   }
 }
+
+function updateAllOverlayStyles() {
+  const feedContainer = findFeedContainer();
+  if (!feedContainer) return;
+  
+  const blurredPosts = feedContainer.querySelectorAll('.linkedin-filter-blurred');
+  
+  for (const post of blurredPosts) {
+    const urn = post.getAttribute('data-urn');
+    if (urn && !window.LinkedInFilter.userRevealed.has(urn)) {
+      window.LinkedInFilter.updateOverlayStyle(post, filterSettings.opaqueOverlay);
+    }
+  }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'settingsChanged') {
     filterSettings = message.settings || filterSettings;
+    updateAllOverlayStyles();
     reEvaluateAllPosts();
     sendResponse({ success: true });
   }

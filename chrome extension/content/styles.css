@@ -5,6 +5,25 @@
   z-index: 1;
 }
 
+.linkedin-filter-overlay-opaque {
+  background: rgba(255, 255, 255, 1) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .linkedin-filter-overlay-opaque {
+    background: rgba(0, 0, 0, 1) !important;
+  }
+}
+
+.linkedin-filter-overlay-opaque ~ .feed-shared-update-v2__description,
+.linkedin-filter-overlay-opaque ~ .feed-shared-text,
+.linkedin-filter-overlay-opaque ~ .feed-shared-update__description,
+.linkedin-filter-blurred:has(.linkedin-filter-overlay-opaque) .feed-shared-update-v2__description,
+.linkedin-filter-blurred:has(.linkedin-filter-overlay-opaque) .feed-shared-text,
+.linkedin-filter-blurred:has(.linkedin-filter-overlay-opaque) .feed-shared-update__description {
+  filter: none !important;
+}
+
 .linkedin-filter-blurred .feed-shared-update-v2__description,
 .linkedin-filter-blurred .feed-shared-text,
 .linkedin-filter-blurred .feed-shared-update__description,
@@ -43,6 +62,14 @@
   padding: 3rem;
   max-width: 600px;
   color: #000;
+}
+
+.linkedin-filter-lock-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 1rem;
+  opacity: 0.8;
+  display: block;
 }
 
 @media (prefers-color-scheme: dark) {
