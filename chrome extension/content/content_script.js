@@ -443,6 +443,19 @@ const originalReplaceState = history.replaceState;
 
 history.pushState = function(...args) {
   const prev = lastUrl;
+  const target = args.length >= 3 ? args[2] : undefined;
+  let nextCandidate = null;
+  if (typeof target === 'string') {
+    try {
+      nextCandidate = new URL(target, location.origin).href;
+    } catch {}
+  }
+  if (nextCandidate && !isFeedPath(prev) && isFeedPath(nextCandidate)) {
+    lastUrl = nextCandidate;
+    try { window.location.href = nextCandidate; } catch {}
+    try { window.location.reload(); } catch {}
+    return;
+  }
   originalPushState.apply(history, args);
   const next = location.href;
   if (next !== prev) {
@@ -453,6 +466,19 @@ history.pushState = function(...args) {
 
 history.replaceState = function(...args) {
   const prev = lastUrl;
+  const target = args.length >= 3 ? args[2] : undefined;
+  let nextCandidate = null;
+  if (typeof target === 'string') {
+    try {
+      nextCandidate = new URL(target, location.origin).href;
+    } catch {}
+  }
+  if (nextCandidate && !isFeedPath(prev) && isFeedPath(nextCandidate)) {
+    lastUrl = nextCandidate;
+    try { window.location.href = nextCandidate; } catch {}
+    try { window.location.reload(); } catch {}
+    return;
+  }
   originalReplaceState.apply(history, args);
   const next = location.href;
   if (next !== prev) {
