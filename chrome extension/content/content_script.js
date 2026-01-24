@@ -397,31 +397,68 @@ if (document.readyState !== 'complete') {
 }
 
 let lastUrl = location.href;
+function isFeedPath(href) {
+  try {
+    const urlObj = new URL(href, location.origin);
+    const path = urlObj.pathname || '';
+    return path === '/feed' || path.startsWith('/feed/');
+  } catch (e) {
+    return typeof href === 'string' && href.includes('/feed');
+  }
+}
+
+function handleUrlChange(prevUrl, nextUrl) {
+  const wentToFeed = !isFeedPath(prevUrl) && isFeedPath(nextUrl);
+  if (wentToFeed) {
+    try {
+      window.location.reload();
+    } catch (e) {
+      // Swallow failures silently
+    }
+    return;
+  }
+  setTimeout(() => reinitializeFeedObserver(), 500);
+}
+
 const navigationObserver = new MutationObserver(() => {
   const url = location.href;
   if (url !== lastUrl) {
+    handleUrlChange(lastUrl, url);
     lastUrl = url;
-    reinitializeFeedObserver();
   }
 });
 
 navigationObserver.observe(document, { subtree: true, childList: true });
 
 window.addEventListener('popstate', () => {
-  setTimeout(() => reinitializeFeedObserver(), 500);
+  const url = location.href;
+  if (url !== lastUrl) {
+    handleUrlChange(lastUrl, url);
+    lastUrl = url;
+  }
 });
 
 const originalPushState = history.pushState;
 const originalReplaceState = history.replaceState;
 
 history.pushState = function(...args) {
+  const prev = lastUrl;
   originalPushState.apply(history, args);
-  setTimeout(() => reinitializeFeedObserver(), 500);
+  const next = location.href;
+  if (next !== prev) {
+    handleUrlChange(prev, next);
+    lastUrl = next;
+  }
 };
 
 history.replaceState = function(...args) {
+  const prev = lastUrl;
   originalReplaceState.apply(history, args);
-  setTimeout(() => reinitializeFeedObserver(), 500);
+  const next = location.href;
+  if (next !== prev) {
+    handleUrlChange(prev, next);
+    lastUrl = next;
+  }
 };
 
 async function reEvaluateAllPosts() {
