@@ -1,4 +1,5 @@
 const DEFAULT_SETTINGS = {
+  extensionEnabled: true,
   showHiringPosts: true,
   showJobAnnouncements: false,
   showGrindset: false,
@@ -19,11 +20,12 @@ const DEFAULT_SETTINGS = {
 async function loadSettings() {
   try {
     const result = await chrome.storage.sync.get([
-      'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
+      'extensionEnabled', 'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
       'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents', 'showEngagementBait',
       'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled', 'opaqueOverlay'
     ]);
     return {
+      extensionEnabled: result.extensionEnabled !== undefined ? result.extensionEnabled : DEFAULT_SETTINGS.extensionEnabled,
       showHiringPosts: result.showHiringPosts !== undefined ? result.showHiringPosts : DEFAULT_SETTINGS.showHiringPosts,
       showJobAnnouncements: result.showJobAnnouncements !== undefined ? result.showJobAnnouncements : DEFAULT_SETTINGS.showJobAnnouncements,
       showGrindset: result.showGrindset !== undefined ? result.showGrindset : DEFAULT_SETTINGS.showGrindset,
@@ -70,6 +72,7 @@ function notifyContentScript(settings) {
 
 function getAllToggleValues() {
   return {
+    extensionEnabled: document.getElementById('toggle-extension-enabled').checked,
     showHiringPosts: document.getElementById('toggle-hiring-posts').checked,
     showJobAnnouncements: document.getElementById('toggle-job-announcements').checked,
     showGrindset: document.getElementById('toggle-grindset').checked,
@@ -100,6 +103,7 @@ function addToggleListener(toggleId) {
 async function initializePopup() {
   const settings = await loadSettings();
   
+  document.getElementById('toggle-extension-enabled').checked = settings.extensionEnabled;
   document.getElementById('toggle-hiring-posts').checked = settings.showHiringPosts;
   document.getElementById('toggle-job-announcements').checked = settings.showJobAnnouncements;
   document.getElementById('toggle-grindset').checked = settings.showGrindset;
@@ -117,6 +121,7 @@ async function initializePopup() {
   document.getElementById('toggle-ai-enabled').checked = settings.aiEnabled;
   document.getElementById('toggle-opaque-overlay').checked = settings.opaqueOverlay;
   
+  addToggleListener('toggle-extension-enabled');
   addToggleListener('toggle-hiring-posts');
   addToggleListener('toggle-job-announcements');
   addToggleListener('toggle-grindset');

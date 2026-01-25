@@ -1,6 +1,7 @@
 const processedUrns = new Set();
 const blockedUrns = new Set();
 let filterSettings = {
+  extensionEnabled: true,
   showHiringPosts: true,
   showJobAnnouncements: false,
   showGrindset: false,
@@ -21,11 +22,12 @@ let filterSettings = {
 async function loadFilterSettings() {
   try {
     const result = await chrome.storage.sync.get([
-      'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
+      'extensionEnabled', 'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
       'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents', 'showEngagementBait',
       'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled', 'opaqueOverlay'
     ]);
     filterSettings = {
+      extensionEnabled: result.extensionEnabled !== undefined ? result.extensionEnabled : true,
       showHiringPosts: result.showHiringPosts !== undefined ? result.showHiringPosts : true,
       showJobAnnouncements: result.showJobAnnouncements !== undefined ? result.showJobAnnouncements : false,
       showGrindset: result.showGrindset !== undefined ? result.showGrindset : false,
@@ -46,6 +48,7 @@ async function loadFilterSettings() {
   } catch (error) {
     console.error('[LinkedIn Filter] Error loading settings:', error);
     filterSettings = {
+      extensionEnabled: true,
       showHiringPosts: true,
       showJobAnnouncements: false,
       showGrindset: false,
@@ -102,6 +105,11 @@ function shouldIgnoreElement(el) {
 }
 
 function scanForPostArticles(root) {
+  // Early exit if extension is disabled
+  if (!filterSettings.extensionEnabled) {
+    return;
+  }
+  
   if (!root || root.nodeType !== Node.ELEMENT_NODE) {
     return;
   }
@@ -523,6 +531,22 @@ async function reEvaluateAllPosts() {
   if (!feedContainer) return;
   
   const articles = feedContainer.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"]');
+  
+  // If extension is disabled, remove all overlays
+  if (!filterSettings.extensionEnabled) {
+    for (const article of articles) {
+      const overlays = article.querySelectorAll('.linkedin-filter-overlay');
+      overlays.forEach(overlay => {
+        if (overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      });
+      article.classList.remove('linkedin-filter-blurred');
+      const urn = article.getAttribute('data-urn');
+      if (urn) blockedUrns.delete(urn);
+    }
+    return;
+  }
   
   for (const article of articles) {
     const urn = article.getAttribute('data-urn');
