@@ -386,6 +386,35 @@ function startInitialization() {
 
 startInitialization();
 
+function setupNewPostsReloadListener() {
+  console.log('[LinkedIn Filter] Setting up New posts button listener...');
+  
+  // Use event delegation on the document to catch clicks on the "New posts" button
+  document.addEventListener('click', (e) => {
+    const button = e.target.closest('button[type="button"]');
+    
+    if (!button) return;
+    
+    // Check if this button contains "New posts" text
+    const buttonText = button.textContent || '';
+    if (buttonText.includes('New posts')) {
+      console.log('[LinkedIn Filter] New posts button clicked, reloading page...');
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Small delay to ensure the click is processed
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    }
+  }, true); // Use capture phase to catch it early
+  
+  console.log('[LinkedIn Filter] New posts listener active');
+}
+
+// Ensure the New posts listener is active
+setupNewPostsReloadListener();
+
 if (document.readyState !== 'complete') {
   window.addEventListener('load', () => {
     setTimeout(() => {
