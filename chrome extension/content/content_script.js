@@ -386,6 +386,35 @@ function startInitialization() {
 
 startInitialization();
 
+function setupNewPostsReloadListener() {
+  console.log('[LinkedIn Filter] Setting up New posts button listener...');
+  
+  // Use event delegation on the document to catch clicks on the "New posts" button
+  document.addEventListener('click', (e) => {
+    const button = e.target.closest('button[type="button"]');
+    
+    if (!button) return;
+    
+    // Check if this button contains "New posts" text
+    const buttonText = button.textContent || '';
+    if (buttonText.includes('New posts')) {
+      console.log('[LinkedIn Filter] New posts button clicked, reloading page...');
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Small delay to ensure the click is processed
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    }
+  }, true); // Use capture phase to catch it early
+  
+  console.log('[LinkedIn Filter] New posts listener active');
+}
+
+// Ensure the New posts listener is active
+setupNewPostsReloadListener();
+
 if (document.readyState !== 'complete') {
   window.addEventListener('load', () => {
     setTimeout(() => {
@@ -397,31 +426,94 @@ if (document.readyState !== 'complete') {
 }
 
 let lastUrl = location.href;
+function isFeedPath(href) {
+  try {
+    const urlObj = new URL(href, location.origin);
+    const path = urlObj.pathname || '';
+    return path === '/feed' || path.startsWith('/feed/');
+  } catch (e) {
+    return typeof href === 'string' && href.includes('/feed');
+  }
+}
+
+function handleUrlChange(prevUrl, nextUrl) {
+  const wentToFeed = !isFeedPath(prevUrl) && isFeedPath(nextUrl);
+  if (wentToFeed) {
+    try {
+      window.location.reload();
+    } catch (e) {
+      // Swallow failures silently
+    }
+    return;
+  }
+  setTimeout(() => reinitializeFeedObserver(), 500);
+}
+
 const navigationObserver = new MutationObserver(() => {
   const url = location.href;
   if (url !== lastUrl) {
+    handleUrlChange(lastUrl, url);
     lastUrl = url;
-    reinitializeFeedObserver();
   }
 });
 
 navigationObserver.observe(document, { subtree: true, childList: true });
 
 window.addEventListener('popstate', () => {
-  setTimeout(() => reinitializeFeedObserver(), 500);
+  const url = location.href;
+  if (url !== lastUrl) {
+    handleUrlChange(lastUrl, url);
+    lastUrl = url;
+  }
 });
 
 const originalPushState = history.pushState;
 const originalReplaceState = history.replaceState;
 
 history.pushState = function(...args) {
+  const prev = lastUrl;
+  const target = args.length >= 3 ? args[2] : undefined;
+  let nextCandidate = null;
+  if (typeof target === 'string') {
+    try {
+      nextCandidate = new URL(target, location.origin).href;
+    } catch {}
+  }
+  if (nextCandidate && !isFeedPath(prev) && isFeedPath(nextCandidate)) {
+    lastUrl = nextCandidate;
+    try { window.location.href = nextCandidate; } catch {}
+    try { window.location.reload(); } catch {}
+    return;
+  }
   originalPushState.apply(history, args);
-  setTimeout(() => reinitializeFeedObserver(), 500);
+  const next = location.href;
+  if (next !== prev) {
+    handleUrlChange(prev, next);
+    lastUrl = next;
+  }
 };
 
 history.replaceState = function(...args) {
+  const prev = lastUrl;
+  const target = args.length >= 3 ? args[2] : undefined;
+  let nextCandidate = null;
+  if (typeof target === 'string') {
+    try {
+      nextCandidate = new URL(target, location.origin).href;
+    } catch {}
+  }
+  if (nextCandidate && !isFeedPath(prev) && isFeedPath(nextCandidate)) {
+    lastUrl = nextCandidate;
+    try { window.location.href = nextCandidate; } catch {}
+    try { window.location.reload(); } catch {}
+    return;
+  }
   originalReplaceState.apply(history, args);
-  setTimeout(() => reinitializeFeedObserver(), 500);
+  const next = location.href;
+  if (next !== prev) {
+    handleUrlChange(prev, next);
+    lastUrl = next;
+  }
 };
 
 async function reEvaluateAllPosts() {
