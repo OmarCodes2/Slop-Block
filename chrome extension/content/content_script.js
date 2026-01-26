@@ -71,15 +71,15 @@ loadFilterSettings();
 
 function getActivityUrn(el) {
   const urn = el.getAttribute('data-urn');
-  if (urn && urn.startsWith('urn:li:activity:')) {
+  if (urn && (urn.startsWith('urn:li:activity:') || urn.startsWith('urn:li:aggregate:'))) {
     return urn;
   }
   
-  if (el.matches && el.matches('div[role="article"][data-urn^="urn:li:activity:"]')) {
+  if (el.matches && el.matches('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]')) {
     return el.getAttribute('data-urn');
   }
   
-  const article = el.querySelector('div[role="article"][data-urn^="urn:li:activity:"]');
+  const article = el.querySelector('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]');
   if (article) {
     return article.getAttribute('data-urn');
   }
@@ -90,12 +90,15 @@ function getActivityUrn(el) {
 function shouldIgnoreElement(el) {
   const dataId = el.getAttribute('data-id');
   if (dataId && dataId.startsWith('urn:li:aggregate:')) {
-    return true;
+    const hasAggregateArticle = el.querySelector('div[role="article"][data-urn^="urn:li:aggregate:"]');
+    if (!hasAggregateArticle) {
+      return true;
+    }
   }
   
   if (el.classList && el.classList.contains('occludable-update-hint') && 
       el.classList.contains('occludable-update')) {
-    const hasArticleWithUrn = el.querySelector('div[role="article"][data-urn^="urn:li:activity:"]');
+    const hasArticleWithUrn = el.querySelector('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]');
     if (!hasArticleWithUrn) {
       return true;
     }
@@ -118,7 +121,7 @@ function scanForPostArticles(root) {
     return;
   }
   
-  const articles = root.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"]');
+  const articles = root.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]');
   
   for (const article of articles) {
     const urn = article.getAttribute('data-urn');
@@ -530,7 +533,7 @@ async function reEvaluateAllPosts() {
   const feedContainer = findFeedContainer();
   if (!feedContainer) return;
   
-  const articles = feedContainer.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"]');
+  const articles = feedContainer.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]');
   
   // If extension is disabled, remove all overlays
   if (!filterSettings.extensionEnabled) {
