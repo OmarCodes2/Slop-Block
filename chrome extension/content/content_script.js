@@ -290,6 +290,8 @@ function findFeedContainer() {
 let feedObserver = null;
 let isInitialized = false;
 let pendingScanWork = null;
+let currentFeedContainer = null;
+let containerWatcher = null;
 
 function scheduleScanWork(roots) {
   if (pendingScanWork) {
@@ -317,6 +319,56 @@ function scheduleScanWork(roots) {
   }
 }
 
+function setupContainerWatcher() {
+  if (containerWatcher) {
+    containerWatcher.disconnect();
+  }
+  
+  if (!currentFeedContainer) {
+    return;
+  }
+  
+  containerWatcher = new MutationObserver(() => {
+    // Check if the current container is still connected to the DOM
+    if (currentFeedContainer && !currentFeedContainer.isConnected) {
+      console.log('[LinkedIn Filter] Feed container was removed from DOM, reinitializing...');
+      
+      // Clean up old observer
+      if (feedObserver) {
+        feedObserver.disconnect();
+        feedObserver = null;
+      }
+      isInitialized = false;
+      currentFeedContainer = null;
+      
+      // Watch for a new container to appear
+      const newContainerWatcher = new MutationObserver(() => {
+        const newContainer = findFeedContainer();
+        if (newContainer) {
+          console.log('[LinkedIn Filter] New feed container found, reinitializing...');
+          newContainerWatcher.disconnect();
+          initializeFeedObserver();
+        }
+      });
+      
+      newContainerWatcher.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      
+      // Disconnect this watcher since we're now watching for a new container
+      containerWatcher.disconnect();
+      containerWatcher = null;
+    }
+  });
+  
+  // Watch document.body for mutations that might affect the container
+  containerWatcher.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
+
 function initializeFeedObserver() {
   if (isInitialized && feedObserver) {
     return;
@@ -332,6 +384,9 @@ function initializeFeedObserver() {
     }, 500);
     return;
   }
+  
+  // Store reference to the current container
+  currentFeedContainer = feedContainer;
   
   scanForPostArticles(feedContainer);
   
@@ -366,6 +421,9 @@ function initializeFeedObserver() {
   
   feedObserver = observer;
   isInitialized = true;
+  
+  // Set up container lifecycle watcher
+  setupContainerWatcher();
 }
 
 function reinitializeFeedObserver() {
@@ -373,7 +431,14 @@ function reinitializeFeedObserver() {
     feedObserver.disconnect();
     feedObserver = null;
   }
+  
+  if (containerWatcher) {
+    containerWatcher.disconnect();
+    containerWatcher = null;
+  }
+  
   isInitialized = false;
+  currentFeedContainer = null;
   
   processedUrns.clear();
   blockedUrns.clear();
