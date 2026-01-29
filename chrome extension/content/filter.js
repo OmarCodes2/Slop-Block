@@ -248,7 +248,8 @@ window.LinkedInFilter.extractPostText = function(postElement) {
     '[data-test-id="main-feed-activity-card__commentary"]',
     '.update-components-text',
     '.feed-shared-inline-show-more-text',
-    '.feed-shared-text__text-view'
+    '.feed-shared-text__text-view',
+    'div[data-view-name="feed-full-update"]' // New LinkedIn feed DOM (A/B test)
   ];
   
   let textContent = '';
