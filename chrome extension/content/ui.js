@@ -85,8 +85,39 @@ window.LinkedInFilter.updateOverlayStyle = function(postElement, opaqueMode = fa
   const overlay = postElement.querySelector('.linkedin-filter-overlay');
   if (!overlay) return;
   
-  const subtitle = overlay.querySelector('.linkedin-filter-subtitle');
-  const currentLabel = subtitle ? subtitle.textContent : 'Other';
+  // Get the current label from the stored classification
+  let currentLabel = 'Other';
+  const classification = postElement.currentClassification;
+  
+  if (classification === "hiring") {
+    currentLabel = "Hiring";
+  } else if (classification === "hired_announcement") {
+    currentLabel = "Hired announcement";
+  } else if (classification === "grindset") {
+    currentLabel = "LinkedIn Grindset Final Boss";
+  } else if (classification === "ai_doomer") {
+    currentLabel = "AI Doomer";
+  } else if (classification === "child_prodigy") {
+    currentLabel = "Child Prodigy Flex";
+  } else if (classification === "sponsored") {
+    currentLabel = "Sponsored/Ad";
+  } else if (classification === "sales_pitch") {
+    currentLabel = "Sales Pitch";
+  } else if (classification === "job_seeking") {
+    currentLabel = "Job Seeking";
+  } else if (classification === "events") {
+    currentLabel = "Event/Webinar";
+  } else if (classification === "engagement_bait") {
+    currentLabel = "Engagement Bait";
+  } else if (classification === "educational") {
+    currentLabel = "Educational/Tips";
+  } else if (classification === "project_launch") {
+    currentLabel = "Project Launch";
+  } else if (classification === "congrats") {
+    currentLabel = "Congrats/Cert";
+  } else if (classification === "other") {
+    currentLabel = "Other";
+  }
   
   // Toggle the opaque class
   if (opaqueMode) {

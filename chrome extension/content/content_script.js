@@ -293,6 +293,7 @@ function blockPost(postElement, urn, classification) {
   blockedUrns.add(urn);
   
   postElement.currentPostKey = urn;
+  postElement.currentClassification = classification;
   
   let label = "Other";
   if (classification === "hiring") {
