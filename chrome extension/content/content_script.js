@@ -1,5 +1,12 @@
 const processedUrns = new Set();
 const blockedUrns = new Set();
+let newDomIdCounter = 0;
+
+// New LinkedIn feed DOM (A/B test) - data attributes only, no class names
+const FEED_ROOT_NEW_SELECTOR = 'div[data-testid="mainFeed"][data-component-type="LazyColumn"]';
+const POST_MARKER_NEW_SELECTOR = 'div[data-view-name="feed-full-update"]';
+const POST_ROOT_ROLE_NEW = 'listitem';
+
 let filterSettings = {
   extensionEnabled: true,
   showHiringPosts: true,
@@ -74,17 +81,46 @@ function getActivityUrn(el) {
   if (urn && (urn.startsWith('urn:li:activity:') || urn.startsWith('urn:li:aggregate:'))) {
     return urn;
   }
-  
+  if (el.getAttribute('data-slopblock-urn')) {
+    return el.getAttribute('data-slopblock-urn');
+  }
   if (el.matches && el.matches('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]')) {
     return el.getAttribute('data-urn');
   }
-  
   const article = el.querySelector('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]');
   if (article) {
     return article.getAttribute('data-urn');
   }
-  
+  const anyUrn = el.querySelector && el.querySelector('[data-urn^="urn:li:activity:"], [data-urn^="urn:li:aggregate:"]');
+  if (anyUrn) {
+    return anyUrn.getAttribute('data-urn');
+  }
   return null;
+}
+
+function getOrAssignNewDomUrn(listItem) {
+  let urn = getActivityUrn(listItem);
+  if (urn) return urn;
+  urn = 'urn:li:activity:new-' + (++newDomIdCounter);
+  listItem.setAttribute('data-slopblock-urn', urn);
+  return urn;
+}
+
+function findNewFeedContainer() {
+  return document.querySelector(FEED_ROOT_NEW_SELECTOR);
+}
+
+function getNewFeedPostRoots(scope) {
+  if (!scope || scope.nodeType !== Node.ELEMENT_NODE) return [];
+  const markers = scope.querySelectorAll(POST_MARKER_NEW_SELECTOR);
+  const roots = new Set();
+  markers.forEach((el) => {
+    const listItem = el.closest('div[role="' + POST_ROOT_ROLE_NEW + '"]');
+    if (listItem) {
+      roots.add(listItem);
+    }
+  });
+  return Array.from(roots);
 }
 
 function shouldIgnoreElement(el) {
@@ -107,6 +143,24 @@ function shouldIgnoreElement(el) {
   return false;
 }
 
+function isNewFeedRoot(root) {
+  return root && root.nodeType === Node.ELEMENT_NODE && root.matches && root.matches(FEED_ROOT_NEW_SELECTOR);
+}
+
+function isInsideNewFeed(root) {
+  return root && root.nodeType === Node.ELEMENT_NODE && root.closest && root.closest(FEED_ROOT_NEW_SELECTOR);
+}
+
+function getPostElementsFromRoot(root) {
+  if (isNewFeedRoot(root) || isInsideNewFeed(root)) {
+    return getNewFeedPostRoots(root);
+  }
+  if (shouldIgnoreElement(root)) {
+    return [];
+  }
+  return Array.from(root.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]'));
+}
+
 function scanForPostArticles(root) {
   // Early exit if extension is disabled
   if (!filterSettings.extensionEnabled) {
@@ -117,14 +171,11 @@ function scanForPostArticles(root) {
     return;
   }
   
-  if (shouldIgnoreElement(root)) {
-    return;
-  }
+  const isNewDom = isNewFeedRoot(root) || isInsideNewFeed(root);
+  const postElements = getPostElementsFromRoot(root);
   
-  const articles = root.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]');
-  
-  for (const article of articles) {
-    const urn = article.getAttribute('data-urn');
+  for (const article of postElements) {
+    const urn = isNewDom ? getOrAssignNewDomUrn(article) : (article.getAttribute('data-urn') || getActivityUrn(article));
     
     if (!urn || processedUrns.has(urn)) {
       continue;
@@ -242,6 +293,7 @@ function blockPost(postElement, urn, classification) {
   blockedUrns.add(urn);
   
   postElement.currentPostKey = urn;
+  postElement.currentClassification = classification;
   
   let label = "Other";
   if (classification === "hiring") {
@@ -287,7 +339,16 @@ function findFeedContainer() {
   return container;
 }
 
-let feedObserver = null;
+function getFeedContainers() {
+  const containers = [];
+  const oldFeed = findFeedContainer();
+  if (oldFeed) containers.push(oldFeed);
+  const newFeed = findNewFeedContainer();
+  if (newFeed) containers.push(newFeed);
+  return containers;
+}
+
+let feedObservers = [];
 let isInitialized = false;
 let pendingScanWork = null;
 
@@ -317,27 +378,12 @@ function scheduleScanWork(roots) {
   }
 }
 
-function initializeFeedObserver() {
-  if (isInitialized && feedObserver) {
-    return;
-  }
-  
-  const feedContainer = findFeedContainer();
-  
-  if (!feedContainer) {
-    setTimeout(() => {
-      if (!isInitialized) {
-        initializeFeedObserver();
-      }
-    }, 500);
-    return;
-  }
-  
+function attachFeedObserver(feedContainer) {
   scanForPostArticles(feedContainer);
-  
+
   const observer = new MutationObserver((mutations) => {
     const addedRoots = [];
-    
+
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.nodeType === Node.ELEMENT_NODE) {
@@ -346,38 +392,63 @@ function initializeFeedObserver() {
             addedRoots.push(node);
             continue;
           }
-          
+          if (node.closest && node.closest(FEED_ROOT_NEW_SELECTOR)) {
+            addedRoots.push(node);
+            continue;
+          }
           if (!shouldIgnoreElement(node)) {
             addedRoots.push(node);
           }
         }
       }
     }
-    
+
     if (addedRoots.length > 0) {
       scheduleScanWork(addedRoots);
     }
   });
-  
+
   observer.observe(feedContainer, {
     childList: true,
     subtree: true
   });
-  
-  feedObserver = observer;
+
+  feedObservers.push(observer);
+}
+
+function initializeFeedObserver() {
+  if (isInitialized && feedObservers.length > 0) {
+    return;
+  }
+
+  const containers = getFeedContainers();
+
+  if (containers.length === 0) {
+    setTimeout(() => {
+      if (!isInitialized) {
+        initializeFeedObserver();
+      }
+    }, 500);
+    return;
+  }
+
+  feedObservers = [];
+  for (const feedContainer of containers) {
+    attachFeedObserver(feedContainer);
+  }
   isInitialized = true;
 }
 
 function reinitializeFeedObserver() {
-  if (feedObserver) {
-    feedObserver.disconnect();
-    feedObserver = null;
+  for (const obs of feedObservers) {
+    obs.disconnect();
   }
+  feedObservers = [];
   isInitialized = false;
-  
+
   processedUrns.clear();
   blockedUrns.clear();
-  
+
   setTimeout(() => {
     initializeFeedObserver();
   }, 500);
@@ -429,7 +500,7 @@ setupNewPostsReloadListener();
 if (document.readyState !== 'complete') {
   window.addEventListener('load', () => {
     setTimeout(() => {
-      if (!isInitialized || !feedObserver) {
+      if (!isInitialized || feedObservers.length === 0) {
         initializeFeedObserver();
       }
     }, 500);
@@ -529,12 +600,15 @@ history.replaceState = function(...args) {
 
 async function reEvaluateAllPosts() {
   await loadFilterSettings();
-  
-  const feedContainer = findFeedContainer();
-  if (!feedContainer) return;
-  
-  const articles = feedContainer.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]');
-  
+
+  const containers = getFeedContainers();
+  if (containers.length === 0) return;
+
+  const articles = [];
+  for (const feedContainer of containers) {
+    articles.push(...getPostElementsFromRoot(feedContainer));
+  }
+
   // If extension is disabled, remove all overlays
   if (!filterSettings.extensionEnabled) {
     for (const article of articles) {
@@ -545,24 +619,25 @@ async function reEvaluateAllPosts() {
         }
       });
       article.classList.remove('linkedin-filter-blurred');
-      const urn = article.getAttribute('data-urn');
+      const urn = getActivityUrn(article) || article.getAttribute('data-slopblock-urn');
       if (urn) blockedUrns.delete(urn);
     }
     return;
   }
-  
+
   for (const article of articles) {
-    const urn = article.getAttribute('data-urn');
+    const isNewDom = isInsideNewFeed(article);
+    const urn = isNewDom ? getOrAssignNewDomUrn(article) : (article.getAttribute('data-urn') || getActivityUrn(article));
     if (!urn) continue;
-    
+
     if (window.LinkedInFilter.userRevealed.has(urn)) {
       continue;
     }
-    
+
     const classification = window.LinkedInFilter.classifyPost(article);
-    
+
     let shouldBlock = false;
-    
+
     if (classification === "hiring") {
       shouldBlock = !filterSettings.showHiringPosts;
     } else if (classification === "hired_announcement") {
@@ -594,9 +669,9 @@ async function reEvaluateAllPosts() {
     } else {
       shouldBlock = true;
     }
-    
+
     const isCurrentlyBlocked = article.classList.contains('linkedin-filter-blurred');
-    
+
     if (shouldBlock && !isCurrentlyBlocked) {
       blockPost(article, urn, classification);
     } else if (!shouldBlock && isCurrentlyBlocked) {
@@ -613,15 +688,14 @@ async function reEvaluateAllPosts() {
 }
 
 function updateAllOverlayStyles() {
-  const feedContainer = findFeedContainer();
-  if (!feedContainer) return;
-  
-  const blurredPosts = feedContainer.querySelectorAll('.linkedin-filter-blurred');
-  
-  for (const post of blurredPosts) {
-    const urn = post.getAttribute('data-urn');
-    if (urn && !window.LinkedInFilter.userRevealed.has(urn)) {
-      window.LinkedInFilter.updateOverlayStyle(post, filterSettings.opaqueOverlay);
+  const containers = getFeedContainers();
+  for (const feedContainer of containers) {
+    const blurredPosts = feedContainer.querySelectorAll('.linkedin-filter-blurred');
+    for (const post of blurredPosts) {
+      const urn = post.getAttribute('data-urn') || post.getAttribute('data-slopblock-urn');
+      if (urn && !window.LinkedInFilter.userRevealed.has(urn)) {
+        window.LinkedInFilter.updateOverlayStyle(post, filterSettings.opaqueOverlay);
+      }
     }
   }
 }
