@@ -78,6 +78,13 @@ body {
   display: none;
 }
 
+.tab-icon {
+  margin-right: 6px;
+  font-size: 1em;
+  line-height: 1;
+  vertical-align: middle;
+}
+
 .tab-button:focus {
   outline: none;
   box-shadow: inset 0 0 0 2px rgba(10, 102, 194, 0.2);
@@ -142,6 +149,18 @@ body {
   border-radius: 10px;
   border: 1px solid #2d3748;
   transition: all 0.2s ease;
+}
+
+.item-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-right: 12px;
+  line-height: 1;
 }
 
 .toggle-item:hover {
