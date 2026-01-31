@@ -24,14 +24,15 @@ let filterSettings = {
   showCongrats: false,
   showOther: false,
   aiEnabled: true,
-  opaqueOverlay: false
+  opaqueOverlay: false,
+  hideRevealButton: false
 };
 async function loadFilterSettings() {
   try {
     const result = await chrome.storage.sync.get([
       'extensionEnabled', 'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
       'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents', 'showEngagementBait',
-      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled', 'opaqueOverlay'
+      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled', 'opaqueOverlay', 'hideRevealButton'
     ]);
     filterSettings = {
       extensionEnabled: result.extensionEnabled !== undefined ? result.extensionEnabled : true,
@@ -50,7 +51,8 @@ async function loadFilterSettings() {
       showCongrats: result.showCongrats !== undefined ? result.showCongrats : false,
       showOther: result.showOther !== undefined ? result.showOther : false,
       aiEnabled: result.aiEnabled !== undefined ? result.aiEnabled : true,
-      opaqueOverlay: result.opaqueOverlay !== undefined ? result.opaqueOverlay : false
+      opaqueOverlay: result.opaqueOverlay !== undefined ? result.opaqueOverlay : false,
+      hideRevealButton: result.hideRevealButton !== undefined ? result.hideRevealButton : false
     };
   } catch (error) {
     console.error('[LinkedIn Filter] Error loading settings:', error);
@@ -326,7 +328,7 @@ function blockPost(postElement, urn, classification) {
     label = "Other";
   }
   
-  window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay);
+  window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay, filterSettings.hideRevealButton);
 }
 
 function findFeedContainer() {
@@ -694,7 +696,7 @@ function updateAllOverlayStyles() {
     for (const post of blurredPosts) {
       const urn = post.getAttribute('data-urn') || post.getAttribute('data-slopblock-urn');
       if (urn && !window.LinkedInFilter.userRevealed.has(urn)) {
-        window.LinkedInFilter.updateOverlayStyle(post, filterSettings.opaqueOverlay);
+        window.LinkedInFilter.updateOverlayStyle(post, filterSettings.opaqueOverlay, filterSettings.hideRevealButton);
       }
     }
   }

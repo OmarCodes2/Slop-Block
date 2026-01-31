@@ -15,14 +15,15 @@ const DEFAULT_SETTINGS = {
   showCongrats: false,
   showOther: false,
   aiEnabled: true,
-  opaqueOverlay: false
+  opaqueOverlay: false,
+  hideRevealButton: false
 };
 async function loadSettings() {
   try {
     const result = await chrome.storage.sync.get([
       'extensionEnabled', 'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
       'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents', 'showEngagementBait',
-      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled', 'opaqueOverlay'
+      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled', 'opaqueOverlay', 'hideRevealButton'
     ]);
     return {
       extensionEnabled: result.extensionEnabled !== undefined ? result.extensionEnabled : DEFAULT_SETTINGS.extensionEnabled,
@@ -41,7 +42,8 @@ async function loadSettings() {
       showCongrats: result.showCongrats !== undefined ? result.showCongrats : DEFAULT_SETTINGS.showCongrats,
       showOther: result.showOther !== undefined ? result.showOther : DEFAULT_SETTINGS.showOther,
       aiEnabled: result.aiEnabled !== undefined ? result.aiEnabled : DEFAULT_SETTINGS.aiEnabled,
-      opaqueOverlay: result.opaqueOverlay !== undefined ? result.opaqueOverlay : DEFAULT_SETTINGS.opaqueOverlay
+      opaqueOverlay: result.opaqueOverlay !== undefined ? result.opaqueOverlay : DEFAULT_SETTINGS.opaqueOverlay,
+      hideRevealButton: result.hideRevealButton !== undefined ? result.hideRevealButton : DEFAULT_SETTINGS.hideRevealButton
     };
   } catch (error) {
     console.error('[Slop Block] Error loading settings:', error);
@@ -88,7 +90,8 @@ function getAllToggleValues() {
     showCongrats: document.getElementById('toggle-congrats').checked,
     showOther: document.getElementById('toggle-other').checked,
     aiEnabled: document.getElementById('toggle-ai-enabled').checked,
-    opaqueOverlay: document.getElementById('toggle-opaque-overlay').checked
+    opaqueOverlay: document.getElementById('toggle-opaque-overlay').checked,
+    hideRevealButton: document.getElementById('toggle-hide-reveal-button').checked
   };
 }
 
@@ -120,6 +123,7 @@ async function initializePopup() {
   document.getElementById('toggle-other').checked = settings.showOther;
   document.getElementById('toggle-ai-enabled').checked = settings.aiEnabled;
   document.getElementById('toggle-opaque-overlay').checked = settings.opaqueOverlay;
+  document.getElementById('toggle-hide-reveal-button').checked = settings.hideRevealButton;
   
   addToggleListener('toggle-extension-enabled');
   addToggleListener('toggle-hiring-posts');
@@ -138,6 +142,7 @@ async function initializePopup() {
   addToggleListener('toggle-other');
   addToggleListener('toggle-ai-enabled');
   addToggleListener('toggle-opaque-overlay');
+  addToggleListener('toggle-hide-reveal-button');
 
   const moreBtn = document.querySelector('.more-toggle');
   const moreContainer = document.getElementById('more-filters');
