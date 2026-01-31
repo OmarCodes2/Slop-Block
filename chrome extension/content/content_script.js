@@ -218,7 +218,7 @@ function scanForPostArticles(root) {
 async function categorizePostWithAI(postElement, urn) {
   // Skip AI processing if disabled in settings
   if (!filterSettings.aiEnabled) {
-    console.log('[LinkedIn Filter] AI processing disabled, keeping "Other" label');
+    console.log('[LinkedIn Filter] AI processing disabled, keeping "Uncategorized" label');
     return;
   }
   
@@ -241,7 +241,7 @@ async function categorizePostWithAI(postElement, urn) {
     
     if (response.error) {
       console.error('[LinkedIn Filter] AI categorization error:', response.error);
-      window.LinkedInFilter.updateOverlayLabel(postElement, "Other");
+      window.LinkedInFilter.updateOverlayLabel(postElement, "Uncategorized");
     } else {
       console.log('[LinkedIn Filter] AI categorization for post', urn, ':', response.result);
       
@@ -256,14 +256,14 @@ async function categorizePostWithAI(postElement, urn) {
       aiLabel = words.join(' ');
       
       if (!aiLabel || aiLabel.length === 0) {
-        aiLabel = "Other";
+        aiLabel = "Uncategorized";
       }
       
       window.LinkedInFilter.updateOverlayLabel(postElement, aiLabel);
     }
   } catch (error) {
     console.error('[LinkedIn Filter] Failed to categorize post with AI:', error);
-    window.LinkedInFilter.updateOverlayLabel(postElement, "Other");
+    window.LinkedInFilter.updateOverlayLabel(postElement, "Uncategorized");
   }
 }
 
@@ -281,7 +281,7 @@ function blockPost(postElement, urn, classification) {
   postElement.currentPostKey = urn;
   postElement.currentClassification = classification;
   
-  let label = "Other";
+  let label = "Uncategorized";
   if (classification === "hiring") {
     label = "Hiring";
   } else if (classification === "hired_announcement") {
@@ -303,7 +303,7 @@ function blockPost(postElement, urn, classification) {
   } else if (classification === "congrats") {
     label = "Certifications";
   } else if (classification === "other") {
-    label = "Other";
+    label = "Uncategorized";
   }
   
   window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay, filterSettings.hideRevealButton);

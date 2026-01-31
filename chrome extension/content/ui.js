@@ -76,7 +76,7 @@ window.LinkedInFilter.updateOverlayStyle = function(postElement, opaqueMode = fa
   if (!overlay) return;
   
   // Get the current label from the stored classification
-  let currentLabel = 'Other';
+  let currentLabel = 'Uncategorized';
   const classification = postElement.currentClassification;
   
   if (classification === "hiring") {
@@ -106,7 +106,7 @@ window.LinkedInFilter.updateOverlayStyle = function(postElement, opaqueMode = fa
   } else if (classification === "congrats") {
     currentLabel = "Congrats/Cert";
   } else if (classification === "other") {
-    currentLabel = "Other";
+    currentLabel = "Uncategorized";
   }
   
   // Toggle the opaque class (solid overlay, hide post text under block)
