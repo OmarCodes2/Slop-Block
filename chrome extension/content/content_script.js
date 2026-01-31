@@ -7,22 +7,25 @@ const FEED_ROOT_NEW_SELECTOR = 'div[data-testid="mainFeed"][data-component-type=
 const POST_MARKER_NEW_SELECTOR = 'div[data-view-name="feed-full-update"]';
 const POST_ROOT_ROLE_NEW = 'listitem';
 
+const EXPERIMENTAL_CLASSIFICATIONS = new Set([
+  'hiring', 'sales_pitch', 'job_seeking', 'events',
+  'educational', 'project_launch', 'congrats'
+]);
+
 let filterSettings = {
   extensionEnabled: true,
   showHiringPosts: true,
   showJobAnnouncements: false,
   showGrindset: false,
-  showAiDoomer: false,
-  showChildProdigy: false,
   showSponsored: false,
   showSalesPitch: false,
   showJobSeeking: false,
   showEvents: false,
-  showEngagementBait: false,
   showEducational: false,
   showProjectLaunch: false,
   showCongrats: false,
   showOther: false,
+  experimentalFilters: false,
   aiEnabled: true,
   opaqueOverlay: false,
   hideRevealButton: false
@@ -30,26 +33,24 @@ let filterSettings = {
 async function loadFilterSettings() {
   try {
     const result = await chrome.storage.sync.get([
-      'extensionEnabled', 'showHiringPosts', 'showJobAnnouncements', 'showGrindset', 'showAiDoomer', 'showChildProdigy',
-      'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents', 'showEngagementBait',
-      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled', 'opaqueOverlay', 'hideRevealButton'
+      'extensionEnabled', 'showHiringPosts', 'showJobAnnouncements', 'showGrindset',
+      'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents',
+      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'experimentalFilters', 'aiEnabled', 'opaqueOverlay', 'hideRevealButton'
     ]);
     filterSettings = {
       extensionEnabled: result.extensionEnabled !== undefined ? result.extensionEnabled : true,
       showHiringPosts: result.showHiringPosts !== undefined ? result.showHiringPosts : true,
       showJobAnnouncements: result.showJobAnnouncements !== undefined ? result.showJobAnnouncements : false,
       showGrindset: result.showGrindset !== undefined ? result.showGrindset : false,
-      showAiDoomer: result.showAiDoomer !== undefined ? result.showAiDoomer : false,
-      showChildProdigy: result.showChildProdigy !== undefined ? result.showChildProdigy : false,
       showSponsored: result.showSponsored !== undefined ? result.showSponsored : false,
       showSalesPitch: result.showSalesPitch !== undefined ? result.showSalesPitch : false,
       showJobSeeking: result.showJobSeeking !== undefined ? result.showJobSeeking : false,
       showEvents: result.showEvents !== undefined ? result.showEvents : false,
-      showEngagementBait: result.showEngagementBait !== undefined ? result.showEngagementBait : false,
       showEducational: result.showEducational !== undefined ? result.showEducational : false,
       showProjectLaunch: result.showProjectLaunch !== undefined ? result.showProjectLaunch : false,
       showCongrats: result.showCongrats !== undefined ? result.showCongrats : false,
       showOther: result.showOther !== undefined ? result.showOther : false,
+      experimentalFilters: result.experimentalFilters !== undefined ? result.experimentalFilters : false,
       aiEnabled: result.aiEnabled !== undefined ? result.aiEnabled : true,
       opaqueOverlay: result.opaqueOverlay !== undefined ? result.opaqueOverlay : false,
       hideRevealButton: result.hideRevealButton !== undefined ? result.hideRevealButton : false
@@ -61,19 +62,32 @@ async function loadFilterSettings() {
       showHiringPosts: true,
       showJobAnnouncements: false,
       showGrindset: false,
-      showAiDoomer: false,
-      showChildProdigy: false,
       showSponsored: false,
       showSalesPitch: false,
       showJobSeeking: false,
       showEvents: false,
-      showEngagementBait: false,
       showEducational: false,
       showProjectLaunch: false,
       showCongrats: false,
-      showOther: false
+      showOther: false,
+      experimentalFilters: false
     };
   }
+}
+
+function shouldBlockByClassification(classification) {
+  if (classification === "hiring") return !filterSettings.showHiringPosts;
+  if (classification === "hired_announcement") return !filterSettings.showJobAnnouncements;
+  if (classification === "grindset") return !filterSettings.showGrindset;
+  if (classification === "sponsored") return !filterSettings.showSponsored;
+  if (classification === "sales_pitch") return !filterSettings.showSalesPitch;
+  if (classification === "job_seeking") return !filterSettings.showJobSeeking;
+  if (classification === "events") return !filterSettings.showEvents;
+  if (classification === "educational") return !filterSettings.showEducational;
+  if (classification === "project_launch") return !filterSettings.showProjectLaunch;
+  if (classification === "congrats") return !filterSettings.showCongrats;
+  if (classification === "other") return !filterSettings.showOther;
+  return true;
 }
 
 loadFilterSettings();
@@ -185,41 +199,11 @@ function scanForPostArticles(root) {
     
     processedUrns.add(urn);
     
-    const classification = window.LinkedInFilter.classifyPost(article);
-    
-    let shouldBlock = false;
-    
-    if (classification === "hiring") {
-      shouldBlock = !filterSettings.showHiringPosts;
-    } else if (classification === "hired_announcement") {
-      shouldBlock = !filterSettings.showJobAnnouncements;
-    } else if (classification === "grindset") {
-      shouldBlock = !filterSettings.showGrindset;
-    } else if (classification === "ai_doomer") {
-      shouldBlock = !filterSettings.showAiDoomer;
-    } else if (classification === "child_prodigy") {
-      shouldBlock = !filterSettings.showChildProdigy;
-    } else if (classification === "sponsored") {
-      shouldBlock = !filterSettings.showSponsored;
-    } else if (classification === "sales_pitch") {
-      shouldBlock = !filterSettings.showSalesPitch;
-    } else if (classification === "job_seeking") {
-      shouldBlock = !filterSettings.showJobSeeking;
-    } else if (classification === "events") {
-      shouldBlock = !filterSettings.showEvents;
-    } else if (classification === "engagement_bait") {
-      shouldBlock = !filterSettings.showEngagementBait;
-    } else if (classification === "educational") {
-      shouldBlock = !filterSettings.showEducational;
-    } else if (classification === "project_launch") {
-      shouldBlock = !filterSettings.showProjectLaunch;
-    } else if (classification === "congrats") {
-      shouldBlock = !filterSettings.showCongrats;
-    } else if (classification === "other") {
-      shouldBlock = !filterSettings.showOther;
-    } else {
-      shouldBlock = true;
+    let classification = window.LinkedInFilter.classifyPost(article);
+    if (!filterSettings.experimentalFilters && EXPERIMENTAL_CLASSIFICATIONS.has(classification)) {
+      classification = "other";
     }
+    const shouldBlock = shouldBlockByClassification(classification);
     
     if (shouldBlock) {
       blockPost(article, urn, classification);
@@ -303,11 +287,7 @@ function blockPost(postElement, urn, classification) {
   } else if (classification === "hired_announcement") {
     label = "Hired announcement";
   } else if (classification === "grindset") {
-    label = "LinkedIn Grindset Final Boss";
-  } else if (classification === "ai_doomer") {
-    label = "AI Doomer";
-  } else if (classification === "child_prodigy") {
-    label = "Child Prodigy Flex";
+    label = "Hustle culture";
   } else if (classification === "sponsored") {
     label = "Sponsored/Ad";
   } else if (classification === "sales_pitch") {
@@ -316,14 +296,12 @@ function blockPost(postElement, urn, classification) {
     label = "Job Seeking";
   } else if (classification === "events") {
     label = "Event/Webinar";
-  } else if (classification === "engagement_bait") {
-    label = "Engagement Bait";
   } else if (classification === "educational") {
     label = "Educational/Tips";
   } else if (classification === "project_launch") {
     label = "Project Launch";
   } else if (classification === "congrats") {
-    label = "Congrats/Cert";
+    label = "Certifications";
   } else if (classification === "other") {
     label = "Other";
   }
@@ -636,41 +614,11 @@ async function reEvaluateAllPosts() {
       continue;
     }
 
-    const classification = window.LinkedInFilter.classifyPost(article);
-
-    let shouldBlock = false;
-
-    if (classification === "hiring") {
-      shouldBlock = !filterSettings.showHiringPosts;
-    } else if (classification === "hired_announcement") {
-      shouldBlock = !filterSettings.showJobAnnouncements;
-    } else if (classification === "grindset") {
-      shouldBlock = !filterSettings.showGrindset;
-    } else if (classification === "ai_doomer") {
-      shouldBlock = !filterSettings.showAiDoomer;
-    } else if (classification === "child_prodigy") {
-      shouldBlock = !filterSettings.showChildProdigy;
-    } else if (classification === "sponsored") {
-      shouldBlock = !filterSettings.showSponsored;
-    } else if (classification === "sales_pitch") {
-      shouldBlock = !filterSettings.showSalesPitch;
-    } else if (classification === "job_seeking") {
-      shouldBlock = !filterSettings.showJobSeeking;
-    } else if (classification === "events") {
-      shouldBlock = !filterSettings.showEvents;
-    } else if (classification === "engagement_bait") {
-      shouldBlock = !filterSettings.showEngagementBait;
-    } else if (classification === "educational") {
-      shouldBlock = !filterSettings.showEducational;
-    } else if (classification === "project_launch") {
-      shouldBlock = !filterSettings.showProjectLaunch;
-    } else if (classification === "congrats") {
-      shouldBlock = !filterSettings.showCongrats;
-    } else if (classification === "other") {
-      shouldBlock = !filterSettings.showOther;
-    } else {
-      shouldBlock = true;
+    let classification = window.LinkedInFilter.classifyPost(article);
+    if (!filterSettings.experimentalFilters && EXPERIMENTAL_CLASSIFICATIONS.has(classification)) {
+      classification = "other";
     }
+    const shouldBlock = shouldBlockByClassification(classification);
 
     const isCurrentlyBlocked = article.classList.contains('linkedin-filter-blurred');
 

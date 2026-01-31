@@ -22,19 +22,8 @@
       <div class="filter-section">
         <div class="toggle-item">
           <div class="toggle-label">
-            <span class="toggle-name">Hiring Posts</span>
-            <span class="toggle-description">Show posts from recruiters hiring</span>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-hiring-posts" checked>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <div class="toggle-item">
-          <div class="toggle-label">
             <span class="toggle-name">Job Announcements</span>
-            <span class="toggle-description">Show posts announcing new jobs</span>
+            <span class="toggle-description">Show "I'm excited to join..." / new role announcement posts</span>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="toggle-job-announcements">
@@ -44,8 +33,19 @@
         
         <div class="toggle-item">
           <div class="toggle-label">
-            <span class="toggle-name">LinkedIn Grindset Final Boss</span>
-            <span class="toggle-description">Show extreme hustle culture posts</span>
+            <span class="toggle-name">Sponsored/Ads</span>
+            <span class="toggle-description">Show promoted and sponsored posts</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-sponsored">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="toggle-item">
+          <div class="toggle-label">
+            <span class="toggle-name">Hustle culture</span>
+            <span class="toggle-description">Show "rise and grind" / extreme productivity posts</span>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="toggle-grindset">
@@ -55,36 +55,25 @@
         
         <div class="toggle-item">
           <div class="toggle-label">
-            <span class="toggle-name">AI Doomer</span>
-            <span class="toggle-description">Show posts claiming AI will replace all developers</span>
+            <span class="toggle-name">Other</span>
+            <span class="toggle-description">Show uncategorized posts (AI can label when enabled)</span>
           </div>
           <label class="toggle-switch">
-            <input type="checkbox" id="toggle-ai-doomer">
+            <input type="checkbox" id="toggle-other">
             <span class="toggle-slider"></span>
           </label>
         </div>
         
-        <div class="toggle-item">
-          <div class="toggle-label">
-            <span class="toggle-name">Child Prodigy Flex</span>
-            <span class="toggle-description">Show posts emphasizing extreme youth + achievement</span>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-child-prodigy">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        
-        <button class="more-toggle" aria-expanded="false" aria-controls="more-filters">More filters ▾</button>
-
-        <div id="more-filters" class="more-filters" aria-hidden="true">
+        <div id="experimental-filters-block" class="experimental-filters-block" aria-hidden="true">
+          <div id="experimental-filters-label" class="experimental-filters-label">— experimental filters —</div>
+          <div id="more-filters" class="more-filters more-filters-expanded">
           <div class="toggle-item">
             <div class="toggle-label">
-              <span class="toggle-name">Sponsored/Ads</span>
-              <span class="toggle-description">Show promoted and sponsored posts</span>
+              <span class="toggle-name">Hiring Posts</span>
+              <span class="toggle-description">Show posts from recruiters hiring</span>
             </div>
             <label class="toggle-switch">
-              <input type="checkbox" id="toggle-sponsored">
+              <input type="checkbox" id="toggle-hiring-posts" checked>
               <span class="toggle-slider"></span>
             </label>
           </div>
@@ -124,17 +113,6 @@
 
           <div class="toggle-item">
             <div class="toggle-label">
-              <span class="toggle-name">Engagement Bait</span>
-              <span class="toggle-description">Show comment traps and engagement farming</span>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="toggle-engagement-bait">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-
-          <div class="toggle-item">
-            <div class="toggle-label">
               <span class="toggle-name">Educational/Tips</span>
               <span class="toggle-description">Show educational content and tips</span>
             </div>
@@ -157,24 +135,14 @@
 
           <div class="toggle-item">
             <div class="toggle-label">
-              <span class="toggle-name">Congrats/Certs</span>
-              <span class="toggle-description">Show congratulations and certification posts</span>
+              <span class="toggle-name">Certifications</span>
+              <span class="toggle-description">Show certification posts</span>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="toggle-congrats">
               <span class="toggle-slider"></span>
             </label>
           </div>
-
-          <div class="toggle-item">
-            <div class="toggle-label">
-              <span class="toggle-name">Other</span>
-              <span class="toggle-description">Show posts that don't match other categories</span>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="toggle-other">
-              <span class="toggle-slider"></span>
-            </label>
           </div>
         </div>
       </div>
@@ -222,6 +190,17 @@
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="toggle-hide-reveal-button">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-item">
+            <div class="toggle-label">
+              <span class="toggle-name">Experimental filters</span>
+              <span class="toggle-description">Show additional filters (Sponsored, Sales Pitch, Events, etc.)</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-experimental-filters">
               <span class="toggle-slider"></span>
             </label>
           </div>

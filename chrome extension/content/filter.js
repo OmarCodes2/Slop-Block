@@ -110,49 +110,6 @@ const GUARANTEED_GRINDSET_REGEX = [
   /\b(4|5)\s*:?00?\s*(am)?\b/i
 ];
 
-const GUARANTEED_AI_DOOMER_PHRASES = [
-  "swe is dead","software engineering is dead","coding is dead","programming is dead",
-  "stop learning to code","don't learn to code","do not learn to code",
-  "ai will replace developers","ai will replace engineers","ai will replace programmers",
-  "ai will replace all developers","ai will replace all engineers","ai will replace all programmers",
-  "developers are obsolete","engineers are obsolete","programmers are obsolete",
-  "developers are finished","engineering is over","software engineering is over",
-  "juniors are cooked","junior devs are cooked","entry level is dead","entry-level is dead",
-  "no one will hire juniors","no junior roles","junior roles are gone",
-  "agents will replace","ai agents will replace","llms will replace",
-  "prompt engineering is the future","become a prompt engineer",
-  "ai writes better code","ai can do it faster","replace the whole team",
-  "your job will be automated","automation will replace you"
-];
-
-const GUARANTEED_AI_DOOMER_REGEX = [
-  /\b(swe|software\s+engineering|programming|coding)\s+(is\s+)?(dead|over)\b/i,
-  /\b(ai|llm|agents?)\s+will\s+replace\b/i,
-  /\b(juniors?|entry\s*-?\s*level)\s+(are\s+)?(cooked|dead|gone)\b/i,
-  /\b(stop|dont|don't)\s+learn(ing)?\s+to\s+code\b/i
-];
-
-const GUARANTEED_CHILD_PRODIGY_PHRASES = [
-  "high schooler built","high schooler created","high schooler founded","high schooler launched",
-  "middle schooler built","middle schooler created","teenager built","teen built","teen founded",
-  "teen founder","teen ceo","teenage founder","teenage ceo",
-  "high school founder","high school ceo","middle school founder","middle school ceo",
-  "in high school i","when i was 15","when i was 16","when i was 17","at 15 i","at 16 i","at 17 i",
-  "15-year-old","16-year-old","17-year-old","14-year-old","13-year-old","12-year-old",
-  "15 year old","16 year old","17 year old","14 year old","13 year old","12 year old",
-  "i'm 15","i am 15","i'm 16","i am 16","i'm 17","i am 17",
-  "grade 9","grade 10","grade 11","grade 12",
-  "freshman in high school","sophomore in high school","junior in high school","senior in high school",
-  "student founder at 16","started at 16","shipped at 16","raised at 16"
-];
-
-const GUARANTEED_CHILD_PRODIGY_REGEX = [
-  /\b(1[2-7])\s*[- ]?\s*year\s*[- ]?\s*old\b/i,
-  /\b(i\s*(am|'m))\s*(1[2-7])\b/i,
-  /\b(grade\s*(9|10|11|12))\b/i,
-  /\b(high\s+school(er)?|middle\s+school(er)?)\b/i
-];
-
 const ADS_SPONSORED_PHRASES = [
   "promoted","sponsored","learn more","sign up","register now","download","get the guide",
   "free trial","start your free trial","request a demo","book a demo","limited time","offer"
@@ -195,17 +152,6 @@ const EVENT_WEBINAR_REGEX = [
   /\b(speaking at|speaker)\b/i
 ];
 
-const ENGAGEMENT_BAIT_PHRASES = [
-  "agree?","thoughts?","what do you think?","comment below","comment '","type '",
-  "like if","share if","repost if","tag someone","follow for more","part 2",
-  "i'll send you","dm me '"
-];
-const ENGAGEMENT_BAIT_REGEX = [
-  /\bcomment\s+["'][^"']+["']\b/i,
-  /\bdm\s+me\s+["'][^"']+["']\b/i,
-  /\btag\s+(someone|a friend|\d+)\b/i
-];
-
 const EDUCATIONAL_TIPS_REGEX = [
   /\b\d+\s+(tips|lessons|mistakes|steps|ways)\b/i,
   /\b(step\s*by\s*step)\b/i,
@@ -220,10 +166,8 @@ const PROJECT_LAUNCH_REGEX = [
   /\b(introducing|announcing)\b/i
 ];
 
-const CONGRATS_CERTS_REGEX = [
-  /\b(congrats|congratulations)\b/i,
-  /\b(certification|certificate|credential|badge)\b/i,
-  /\b(honored|humbled|grateful)\b/i
+const CERTIFICATIONS_REGEX = [
+  /\b(certification|certificate|credential|badge)\b/i
 ];
 
 function normalizeText(text) {
@@ -311,16 +255,6 @@ window.LinkedInFilter.classifyPost = function(postElement) {
     return "grindset";
   }
   
-  if (matchesPhrases(normalizedText, GUARANTEED_AI_DOOMER_PHRASES) || 
-      matchesRegex(postText, GUARANTEED_AI_DOOMER_REGEX)) {
-    return "ai_doomer";
-  }
-  
-  if (matchesPhrases(normalizedText, GUARANTEED_CHILD_PRODIGY_PHRASES) || 
-      matchesRegex(postText, GUARANTEED_CHILD_PRODIGY_REGEX)) {
-    return "child_prodigy";
-  }
-  
   if (matchesPhrases(normalizedText, ADS_SPONSORED_PHRASES) || 
       matchesRegex(postText, ADS_SPONSORED_REGEX)) {
     return "sponsored";
@@ -341,11 +275,6 @@ window.LinkedInFilter.classifyPost = function(postElement) {
     return "events";
   }
   
-  if (matchesPhrases(normalizedText, ENGAGEMENT_BAIT_PHRASES) || 
-      matchesRegex(postText, ENGAGEMENT_BAIT_REGEX)) {
-    return "engagement_bait";
-  }
-  
   if (matchesRegex(postText, EDUCATIONAL_TIPS_REGEX)) {
     return "educational";
   }
@@ -354,7 +283,7 @@ window.LinkedInFilter.classifyPost = function(postElement) {
     return "project_launch";
   }
   
-  if (matchesRegex(postText, CONGRATS_CERTS_REGEX)) {
+  if (matchesRegex(postText, CERTIFICATIONS_REGEX)) {
     return "congrats";
   }
   
