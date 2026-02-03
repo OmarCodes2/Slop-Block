@@ -108,6 +108,16 @@ function addToggleListener(toggleId) {
   });
 }
 
+async function checkAIAvailability() {
+  try {
+    const response = await chrome.runtime.sendMessage({ action: 'checkAIAvailability' });
+    return response.availability || "unavailable";
+  } catch (err) {
+    console.error('[Slop Block] Error checking AI availability:', err);
+    return "unavailable";
+  }
+}
+
 async function initializePopup() {
   const settings = await loadSettings();
   
@@ -127,6 +137,30 @@ async function initializePopup() {
   document.getElementById('toggle-opaque-overlay').checked = settings.opaqueOverlay;
   document.getElementById('toggle-hide-reveal-button').checked = settings.hideRevealButton;
   document.getElementById('toggle-experimental-filters').checked = settings.experimentalFilters;
+  
+  // Check AI availability and update UI
+  const aiAvailability = await checkAIAvailability();
+  const aiToggle = document.getElementById('toggle-ai-enabled');
+  const aiDescription = document.getElementById('ai-description');
+  const aiToggleItem = document.getElementById('ai-toggle-item');
+  
+  if (aiAvailability === "unavailable" || aiAvailability === "downloadable") {
+    aiToggle.disabled = true;
+    aiToggle.checked = false;
+    aiToggleItem.style.opacity = "0.5";
+    aiToggleItem.style.cursor = "not-allowed";
+    
+    if (aiAvailability === "unavailable") {
+      aiDescription.innerHTML = "Enable or disable AI to categorize a post. Chrome AI not available - requires Chrome 127+. <a href='https://huggingface.co/blog/Xenova/run-gemini-nano-in-your-browser' target='_blank'>Installation guide</a>";
+    } else {
+      aiDescription.innerHTML = "Enable or disable AI to categorize a post. Model not downloaded - requires Chrome 127+. <a href='https://huggingface.co/blog/Xenova/run-gemini-nano-in-your-browser' target='_blank'>Installation guide</a>";
+    }
+  } else if (aiAvailability === "downloading") {
+    aiToggle.disabled = true;
+    aiToggle.checked = false;
+    aiToggleItem.style.opacity = "0.5";
+    aiDescription.textContent = "Enable or disable AI to categorize a post. Model downloading - reload this page once complete";
+  }
 
   updateExperimentalFiltersVisibility(settings.experimentalFilters);
   
