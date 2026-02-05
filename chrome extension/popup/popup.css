@@ -189,6 +189,15 @@ body {
   line-height: 1.4;
 }
 
+.toggle-description a {
+  color: #e4e4e7;
+  text-decoration: underline;
+}
+
+.toggle-description a:hover {
+  color: #ffffff;
+}
+
 .toggle-switch {
   position: relative;
   display: inline-block;

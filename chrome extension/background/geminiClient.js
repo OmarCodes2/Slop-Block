@@ -6,6 +6,20 @@ function getLanguageModelAPI(scope = globalThis) {
   return null;
 }
 
+export async function checkAvailability() {
+  const LM = getLanguageModelAPI();
+  if (!LM) {
+    return "unavailable";
+  }
+  
+  try {
+    const status = await LM.availability();
+    return status;
+  } catch (err) {
+    return "unavailable";
+  }
+}
+
 async function getSession() {
   const LM = getLanguageModelAPI();
   if (!LM) {

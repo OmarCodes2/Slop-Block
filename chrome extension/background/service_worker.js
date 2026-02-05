@@ -1,4 +1,4 @@
-import { callGeminiLLM } from "./geminiClient.js";
+import { callGeminiLLM, checkAvailability } from "./geminiClient.js";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'llm') {
@@ -8,6 +8,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ result });
       } catch (err) {
         sendResponse({ error: err.message });
+      }
+    })();
+    return true;
+  }
+  
+  if (message.action === 'checkAIAvailability') {
+    (async () => {
+      try {
+        const availability = await checkAvailability();
+        sendResponse({ availability });
+      } catch (err) {
+        sendResponse({ availability: "unavailable" });
       }
     })();
     return true;
