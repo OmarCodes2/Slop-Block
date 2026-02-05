@@ -146,8 +146,8 @@ body {
 
 .item-icon {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -157,8 +157,8 @@ body {
 }
 
 .item-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
   display: block;
   fill: currentColor;
 }
