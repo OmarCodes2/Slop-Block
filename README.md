@@ -25,7 +25,7 @@ Slop Block is a Chrome extension that uses a hybrid classification system (local
 - **Chrome Canary or Beta version 127+** (required for LanguageModel API support)
 - Google Chrome browser
 
-### Step 1: Enable Chrome's Built-in AI (Required)
+### Step 1: Enable Chrome's Built-in AI (OPTIONAL)
 
 Slop Block requires Chrome's built-in LanguageModel API powered by Google Gemini Nano for AI classification. To enable this feature:
 
