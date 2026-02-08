@@ -90,8 +90,6 @@ function shouldBlockByClassification(classification) {
   return true;
 }
 
-loadFilterSettings();
-
 function getActivityUrn(el) {
   const urn = el.getAttribute('data-urn');
   if (urn && (urn.startsWith('urn:li:activity:') || urn.startsWith('urn:li:aggregate:'))) {
@@ -199,7 +197,12 @@ function scanForPostArticles(root) {
     
     processedUrns.add(urn);
     
-    let classification = window.LinkedInFilter.classifyPost(article);
+    let classification;
+    try {
+      classification = window.LinkedInFilter.classifyPost(article);
+    } catch (e) {
+      continue;
+    }
     if (!filterSettings.experimentalFilters && EXPERIMENTAL_CLASSIFICATIONS.has(classification)) {
       classification = "other";
     }
@@ -322,8 +325,8 @@ function findFeedContainer() {
 function getFeedContainers() {
   const containers = [];
   const oldFeed = findFeedContainer();
-  if (oldFeed) containers.push(oldFeed);
   const newFeed = findNewFeedContainer();
+  if (oldFeed) containers.push(oldFeed);
   if (newFeed) containers.push(newFeed);
   return containers;
 }
@@ -341,25 +344,39 @@ function scheduleScanWork(roots) {
     }
   }
   
+  const runScan = () => {
+    for (const root of roots) {
+      scanForPostArticles(root);
+    }
+    pendingScanWork = null;
+  };
+  
   if (window.requestIdleCallback) {
-    pendingScanWork = requestIdleCallback(() => {
-      for (const root of roots) {
-        scanForPostArticles(root);
-      }
-      pendingScanWork = null;
-    }, { timeout: 100 });
+    pendingScanWork = requestIdleCallback(runScan, { timeout: 100 });
   } else {
-    pendingScanWork = setTimeout(() => {
-      for (const root of roots) {
-        scanForPostArticles(root);
-      }
-      pendingScanWork = null;
-    }, 0);
+    pendingScanWork = setTimeout(runScan, 0);
   }
 }
 
 function attachFeedObserver(feedContainer) {
   scanForPostArticles(feedContainer);
+
+  // LinkedIn often renders feed items after our initial run. If we found 0 posts, retry after a delay.
+  const initialPostCount = getPostElementsFromRoot(feedContainer).length;
+  if (initialPostCount === 0) {
+    setTimeout(() => {
+      const count = getPostElementsFromRoot(feedContainer).length;
+      if (count > 0) {
+        scanForPostArticles(feedContainer);
+      }
+    }, 1500);
+    setTimeout(() => {
+      const count = getPostElementsFromRoot(feedContainer).length;
+      if (count > 0) {
+        scanForPostArticles(feedContainer);
+      }
+    }, 3500);
+  }
 
   const observer = new MutationObserver((mutations) => {
     const addedRoots = [];
@@ -434,15 +451,19 @@ function reinitializeFeedObserver() {
   }, 500);
 }
 
-function startInitialization() {
+async function startInitialization() {
+  const runInit = async () => {
+    await loadFilterSettings();
+    setTimeout(initializeFeedObserver, 100);
+  };
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(initializeFeedObserver, 100);
+      setTimeout(runInit, 0);
     });
   } else if (document.readyState === 'interactive' || document.readyState === 'complete') {
-    setTimeout(initializeFeedObserver, 100);
+    setTimeout(runInit, 100);
   } else {
-    initializeFeedObserver();
+    runInit();
   }
 }
 
