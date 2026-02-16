@@ -278,6 +278,138 @@ async function categorizePostWithAI(postElement, urn) {
   }
 }
 
+// Invalid actor name labels (from LinkedIn UI) — do not use as display name
+const INVALID_ACTOR_NAMES = new Set([
+  'Follow', 'Promoted', 'Feed post', 'Like', 'Comment', 'Repost', 'Send', 'View more options'
+]);
+
+const ACTOR_URL_PATTERNS = /linkedin\.com\/(in|company|school)\//;
+
+// Match both ASCII apostrophe (') and Unicode right single quote (')
+const APOS = "'\u2019";
+
+/** Return just the name: strip "company: ", "'s profile", " profile", trailing "'s". */
+function normalizeActorName(s) {
+  if (!s || typeof s !== 'string') return '';
+  let t = s.trim();
+  t = t.replace(/^company:\s*/i, '').trim();
+  t = t.replace(new RegExp(`[${APOS}]s\\s+profile$`, 'i'), '').trim();
+  t = t.replace(/\s+profile$/i, '').trim();
+  t = t.replace(new RegExp(`[${APOS}]s$`, 'i'), '').trim();
+  return t.trim();
+}
+
+/**
+ * Extract actor info from a single feed post root (v2 DOM only).
+ * Post root = element with role="listitem" that contains [data-view-name="feed-full-update"].
+ * Returns { actorName, actorProfileUrl, actorPfpUrl } or null if invalid.
+ * DOM-only; no network requests. Uses data-view-name, href patterns, aria-label, alt.
+ */
+function extractActorFromPost(postRoot) {
+  if (!postRoot || !postRoot.querySelector) return null;
+
+  const feedFull = postRoot.querySelector('[data-view-name="feed-full-update"]');
+  if (!feedFull) return null;
+
+  // 2) Choose actor anchor: prefer original author (feed-actor-image), then header (feed-header-actor-image)
+  let anchor = feedFull.querySelector('a[data-view-name="feed-actor-image"][href]');
+  if (anchor && anchor.href && ACTOR_URL_PATTERNS.test(anchor.href)) {
+    // use this
+  } else {
+    anchor = feedFull.querySelector('a[data-view-name="feed-header-actor-image"][href]');
+  }
+  if (!anchor || !anchor.href || !ACTOR_URL_PATTERNS.test(anchor.href)) {
+    const actorImageAnchors = feedFull.querySelectorAll('a[data-view-name$="actor-image"][href]');
+    for (const a of actorImageAnchors) {
+      if (a.href && ACTOR_URL_PATTERNS.test(a.href)) {
+        anchor = a;
+        break;
+      }
+    }
+  }
+  if (!anchor || !anchor.href || !ACTOR_URL_PATTERNS.test(anchor.href)) {
+    const commentary = feedFull.querySelector('[data-view-name="feed-commentary"], [data-testid="expandable-text-box"]');
+    const allActorLinks = feedFull.querySelectorAll('a[href*="linkedin.com/in/"], a[href*="linkedin.com/company/"], a[href*="linkedin.com/school/"]');
+    for (const a of allActorLinks) {
+      if (commentary && commentary.contains(a)) continue;
+      anchor = a;
+      break;
+    }
+    if (!anchor) anchor = allActorLinks[0] || null;
+  }
+
+  if (!anchor || !anchor.href) return null;
+
+  const actorProfileUrl = anchor.href.startsWith('http') ? anchor.href : new URL(anchor.href, document.baseURI).href;
+  if (!ACTOR_URL_PATTERNS.test(actorProfileUrl)) return null;
+
+  // 3) actorName
+  let actorName = null;
+  const strong = anchor.querySelector('strong');
+  const p = anchor.querySelector('p');
+  if (strong && strong.textContent && strong.textContent.trim()) {
+    actorName = strong.textContent.trim();
+  } else if (p && p.textContent && p.textContent.trim()) {
+    actorName = p.textContent.trim();
+  }
+  if (!actorName) {
+    const avatarImg = anchor.querySelector('img[alt]') || anchor.querySelector('figure img[alt]');
+    if (avatarImg && avatarImg.alt) {
+      let alt = avatarImg.alt.trim();
+      if (alt.startsWith('View ')) {
+        alt = alt.slice(5);
+        alt = alt.replace(new RegExp(`[${APOS}]s profile$`, 'i'), '').replace(/\s+profile$/i, '').replace(/\s+company:\s*$/i, '').trim();
+      }
+      if (alt && alt.length < 200) actorName = alt;
+    }
+  }
+  if (!actorName && anchor.closest) {
+    const row = anchor.closest('div');
+    if (row) {
+      const paragraphs = row.querySelectorAll('p');
+      for (const para of paragraphs) {
+        const text = para.textContent && para.textContent.trim();
+        if (text && text.length > 0 && text.length < 80) {
+          actorName = text;
+          break;
+        }
+      }
+    }
+  }
+  if (!actorName) {
+    try {
+      const url = new URL(actorProfileUrl);
+      const path = url.pathname;
+      const companyMatch = path.match(/\/company\/([^/]+)/);
+      const inMatch = path.match(/\/in\/([^/]+)/);
+      const schoolMatch = path.match(/\/school\/([^/]+)/);
+      const slug = (companyMatch && companyMatch[1]) || (inMatch && inMatch[1]) || (schoolMatch && schoolMatch[1]);
+      if (slug) {
+        actorName = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      }
+    } catch (_) {}
+  }
+
+  actorName = normalizeActorName(actorName);
+  if (!actorName || INVALID_ACTOR_NAMES.has(actorName)) return null;
+
+  // 4) actorPfpUrl
+  let actorPfpUrl = null;
+  const pfpImg = anchor.querySelector('img[src]');
+  if (pfpImg && pfpImg.src && pfpImg.src.startsWith('http') && pfpImg.src.includes('media.licdn.com') && !pfpImg.src.startsWith('data:')) {
+    actorPfpUrl = pfpImg.src;
+  }
+  if (!actorPfpUrl) {
+    const figure = anchor.querySelector('figure') || anchor.closest('figure');
+    const figImg = figure && figure.querySelector('img[src]');
+    if (figImg && figImg.src && figImg.src.startsWith('http') && figImg.src.includes('media.licdn.com')) {
+      actorPfpUrl = figImg.src;
+    }
+  }
+
+  return { actorName, actorProfileUrl, actorPfpUrl: actorPfpUrl || null };
+}
+
 function blockPost(postElement, urn, classification) {
   if (window.LinkedInFilter.userRevealed.has(urn)) {
     return;
@@ -316,8 +448,14 @@ function blockPost(postElement, urn, classification) {
   } else if (classification === "other") {
     label = "Uncategorized";
   }
-  
-  window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay, filterSettings.hideRevealButton);
+
+  // v1 DOM: no actor extraction (placeholder "—"). v2 DOM: extract actorName, actorProfileUrl, actorPfpUrl.
+  let actorInfo = null;
+  if (isInsideNewFeed(postElement)) {
+    actorInfo = extractActorFromPost(postElement);
+  }
+
+  window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay, filterSettings.hideRevealButton, actorInfo);
 }
 
 function findFeedContainer() {
