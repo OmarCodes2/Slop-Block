@@ -8,7 +8,7 @@ const POST_MARKER_NEW_SELECTOR = 'div[data-view-name="feed-full-update"]';
 const POST_ROOT_ROLE_NEW = 'listitem';
 
 const EXPERIMENTAL_CLASSIFICATIONS = new Set([
-  'hiring', 'sales_pitch', 'job_seeking', 'events',
+  'sales_pitch', 'job_seeking', 'events',
   'educational', 'project_launch', 'congrats'
 ]);
 
