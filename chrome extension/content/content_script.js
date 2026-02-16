@@ -126,6 +126,9 @@ function findNewFeedContainer() {
   return document.querySelector(FEED_ROOT_NEW_SELECTOR);
 }
 
+// Job cards ("Jobs recommended for you") are not posts — exclude them from filtering
+const JOB_CARD_SELECTOR = '[data-view-name="job-card"]';
+
 function getNewFeedPostRoots(scope) {
   if (!scope || scope.nodeType !== Node.ELEMENT_NODE) return [];
   const markers = scope.querySelectorAll(POST_MARKER_NEW_SELECTOR);
@@ -133,6 +136,10 @@ function getNewFeedPostRoots(scope) {
   markers.forEach((el) => {
     const listItem = el.closest('div[role="' + POST_ROOT_ROLE_NEW + '"]');
     if (listItem) {
+      // Skip listitems that are or contain job cards (recommended jobs), not feed posts
+      if (listItem.querySelector(JOB_CARD_SELECTOR) || listItem.closest(JOB_CARD_SELECTOR)) {
+        return;
+      }
       roots.add(listItem);
     }
   });
@@ -191,6 +198,10 @@ function scanForPostArticles(root) {
   const postElements = getPostElementsFromRoot(root);
   
   for (const article of postElements) {
+    // Never treat job cards ("Jobs recommended for you") as posts
+    if (article.querySelector(JOB_CARD_SELECTOR) || article.closest(JOB_CARD_SELECTOR)) {
+      continue;
+    }
     const urn = isNewDom ? getOrAssignNewDomUrn(article) : (article.getAttribute('data-urn') || getActivityUrn(article));
     
     if (!urn || processedUrns.has(urn)) {
