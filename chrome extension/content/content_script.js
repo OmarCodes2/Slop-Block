@@ -278,7 +278,7 @@ async function categorizePostWithAI(postElement, urn) {
   }
 }
 
-// Invalid actor name labels (from LinkedIn UI) — do not use as display name
+// Invalid actor name labels (from LinkedIn UI) - do not use as display name
 const INVALID_ACTOR_NAMES = new Set([
   'Follow', 'Promoted', 'Feed post', 'Like', 'Comment', 'Repost', 'Send', 'View more options'
 ]);
@@ -297,6 +297,19 @@ function normalizeActorName(s) {
   t = t.replace(/\s+profile$/i, '').trim();
   t = t.replace(new RegExp(`[${APOS}]s$`, 'i'), '').trim();
   return t.trim();
+}
+
+function extractNameFromLabel(label) {
+  if (!label || typeof label !== 'string') return '';
+  let t = label.trim();
+  t = t.replace(/^view[:\s]+/i, '');
+  t = t.replace(/^open control menu for post by\s+/i, '');
+  t = t.replace(/^dismiss post by\s+/i, '');
+  t = t.split(' • ')[0];
+  t = t.replace(/\s+premium\b.*$/i, '');
+  t = t.replace(/\s+link$/i, '');
+  t = t.replace(new RegExp(`[${APOS}]s.*$`, 'i'), '');
+  return normalizeActorName(t);
 }
 
 /**
@@ -410,6 +423,70 @@ function extractActorFromPost(postRoot) {
   return { actorName, actorProfileUrl, actorPfpUrl: actorPfpUrl || null };
 }
 
+/**
+ * Extract actor info from a single feed post root (v1 DOM only).
+ * Post root = element that contains .update-components-actor__container.
+ * Returns { actorName, actorProfileUrl, actorPfpUrl } or null if invalid.
+ */
+function extractActorFromV1Post(postRoot) {
+  if (!postRoot || !postRoot.querySelector) return null;
+
+  const actorContainer = postRoot.querySelector('.update-components-actor__container');
+  if (!actorContainer) return null;
+
+  let anchor = actorContainer.querySelector('a.update-components-actor__image[href]')
+    || actorContainer.querySelector('a.update-components-actor__meta-link[href]');
+
+  if (!anchor) {
+    const links = actorContainer.querySelectorAll('a[href*="linkedin.com/in/"], a[href*="linkedin.com/company/"], a[href*="linkedin.com/school/"]');
+    anchor = links[0] || null;
+  }
+  if (!anchor || !anchor.href) return null;
+
+  const actorProfileUrl = anchor.href.startsWith('http') ? anchor.href : new URL(anchor.href, document.baseURI).href;
+  if (!ACTOR_URL_PATTERNS.test(actorProfileUrl)) return null;
+
+  let actorName = null;
+  const nameSpan = actorContainer.querySelector('.update-components-actor__single-line-truncate span[aria-hidden="true"]');
+  if (nameSpan && nameSpan.textContent && nameSpan.textContent.trim()) {
+    actorName = nameSpan.textContent.trim();
+  }
+  if (!actorName && anchor.getAttribute) {
+    actorName = extractNameFromLabel(anchor.getAttribute('aria-label'));
+  }
+  if (!actorName) {
+    const altImg = actorContainer.querySelector('img[alt]');
+    if (altImg && altImg.alt) {
+      actorName = extractNameFromLabel(altImg.alt);
+    }
+  }
+  if (!actorName) {
+    try {
+      const url = new URL(actorProfileUrl);
+      const path = url.pathname;
+      const companyMatch = path.match(/\/company\/([^/]+)/);
+      const inMatch = path.match(/\/in\/([^/]+)/);
+      const schoolMatch = path.match(/\/school\/([^/]+)/);
+      const slug = (companyMatch && companyMatch[1]) || (inMatch && inMatch[1]) || (schoolMatch && schoolMatch[1]);
+      if (slug) {
+        actorName = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      }
+    } catch (_) {}
+  }
+
+  actorName = normalizeActorName(actorName);
+  if (!actorName || INVALID_ACTOR_NAMES.has(actorName)) return null;
+
+  let actorPfpUrl = null;
+  const pfpImg = actorContainer.querySelector('img.update-components-actor__avatar-image[src]')
+    || actorContainer.querySelector('img[src]');
+  if (pfpImg && pfpImg.src && pfpImg.src.startsWith('http') && pfpImg.src.includes('media.licdn.com') && !pfpImg.src.startsWith('data:')) {
+    actorPfpUrl = pfpImg.src;
+  }
+
+  return { actorName, actorProfileUrl, actorPfpUrl: actorPfpUrl || null };
+}
+
 function blockPost(postElement, urn, classification) {
   if (window.LinkedInFilter.userRevealed.has(urn)) {
     return;
@@ -449,10 +526,12 @@ function blockPost(postElement, urn, classification) {
     label = "Uncategorized";
   }
 
-  // v1 DOM: no actor extraction (placeholder "—"). v2 DOM: extract actorName, actorProfileUrl, actorPfpUrl.
+  // Extract actor info from the right DOM version.
   let actorInfo = null;
   if (isInsideNewFeed(postElement)) {
     actorInfo = extractActorFromPost(postElement);
+  } else {
+    actorInfo = extractActorFromV1Post(postElement);
   }
 
   window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay, filterSettings.hideRevealButton, actorInfo);
