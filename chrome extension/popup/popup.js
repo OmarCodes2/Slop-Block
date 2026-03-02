@@ -14,6 +14,7 @@ const DEFAULT_SETTINGS = {
   aiEnabled: true,
   opaqueOverlay: false,
   hideRevealButton: false,
+  showPosterInfo: true,
   experimentalFilters: false
 };
 async function loadSettings() {
@@ -21,7 +22,7 @@ async function loadSettings() {
     const result = await chrome.storage.sync.get([
       'extensionEnabled', 'showHiringPosts', 'showJobAnnouncements', 'showGrindset',
       'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents',
-      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled', 'opaqueOverlay', 'hideRevealButton', 'experimentalFilters'
+      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'aiEnabled', 'opaqueOverlay', 'hideRevealButton', 'showPosterInfo', 'experimentalFilters'
     ]);
     return {
       extensionEnabled: result.extensionEnabled !== undefined ? result.extensionEnabled : DEFAULT_SETTINGS.extensionEnabled,
@@ -39,6 +40,7 @@ async function loadSettings() {
       aiEnabled: result.aiEnabled !== undefined ? result.aiEnabled : DEFAULT_SETTINGS.aiEnabled,
       opaqueOverlay: result.opaqueOverlay !== undefined ? result.opaqueOverlay : DEFAULT_SETTINGS.opaqueOverlay,
       hideRevealButton: result.hideRevealButton !== undefined ? result.hideRevealButton : DEFAULT_SETTINGS.hideRevealButton,
+      showPosterInfo: result.showPosterInfo !== undefined ? result.showPosterInfo : DEFAULT_SETTINGS.showPosterInfo,
       experimentalFilters: result.experimentalFilters !== undefined ? result.experimentalFilters : DEFAULT_SETTINGS.experimentalFilters
     };
   } catch (error) {
@@ -85,6 +87,7 @@ function getAllToggleValues() {
     aiEnabled: document.getElementById('toggle-ai-enabled').checked,
     opaqueOverlay: document.getElementById('toggle-opaque-overlay').checked,
     hideRevealButton: document.getElementById('toggle-hide-reveal-button').checked,
+    showPosterInfo: document.getElementById('toggle-show-poster-info').checked,
     experimentalFilters: document.getElementById('toggle-experimental-filters').checked
   };
 }
@@ -136,6 +139,7 @@ async function initializePopup() {
   document.getElementById('toggle-ai-enabled').checked = settings.aiEnabled;
   document.getElementById('toggle-opaque-overlay').checked = settings.opaqueOverlay;
   document.getElementById('toggle-hide-reveal-button').checked = settings.hideRevealButton;
+  document.getElementById('toggle-show-poster-info').checked = settings.showPosterInfo;
   document.getElementById('toggle-experimental-filters').checked = settings.experimentalFilters;
   
   // Check AI availability and update UI
@@ -179,6 +183,7 @@ async function initializePopup() {
   addToggleListener('toggle-ai-enabled');
   addToggleListener('toggle-opaque-overlay');
   addToggleListener('toggle-hide-reveal-button');
+  addToggleListener('toggle-show-poster-info');
   addToggleListener('toggle-experimental-filters');
 
   // Tab navigation

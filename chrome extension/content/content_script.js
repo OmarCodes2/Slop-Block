@@ -28,14 +28,15 @@ let filterSettings = {
   experimentalFilters: false,
   aiEnabled: true,
   opaqueOverlay: false,
-  hideRevealButton: false
+  hideRevealButton: false,
+  showPosterInfo: true
 };
 async function loadFilterSettings() {
   try {
     const result = await chrome.storage.sync.get([
       'extensionEnabled', 'showHiringPosts', 'showJobAnnouncements', 'showGrindset',
       'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents',
-      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'experimentalFilters', 'aiEnabled', 'opaqueOverlay', 'hideRevealButton'
+      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'experimentalFilters', 'aiEnabled', 'opaqueOverlay', 'hideRevealButton', 'showPosterInfo'
     ]);
     filterSettings = {
       extensionEnabled: result.extensionEnabled !== undefined ? result.extensionEnabled : true,
@@ -53,7 +54,8 @@ async function loadFilterSettings() {
       experimentalFilters: result.experimentalFilters !== undefined ? result.experimentalFilters : false,
       aiEnabled: result.aiEnabled !== undefined ? result.aiEnabled : true,
       opaqueOverlay: result.opaqueOverlay !== undefined ? result.opaqueOverlay : false,
-      hideRevealButton: result.hideRevealButton !== undefined ? result.hideRevealButton : false
+      hideRevealButton: result.hideRevealButton !== undefined ? result.hideRevealButton : false,
+      showPosterInfo: result.showPosterInfo !== undefined ? result.showPosterInfo : true
     };
   } catch (error) {
     console.error('[LinkedIn Filter] Error loading settings:', error);
@@ -534,7 +536,7 @@ function blockPost(postElement, urn, classification) {
     actorInfo = extractActorFromV1Post(postElement);
   }
 
-  window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay, filterSettings.hideRevealButton, actorInfo);
+  window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay, filterSettings.hideRevealButton, filterSettings.showPosterInfo, actorInfo);
 }
 
 function findFeedContainer() {
@@ -872,7 +874,7 @@ function updateAllOverlayStyles() {
     for (const post of blurredPosts) {
       const urn = post.getAttribute('data-urn') || post.getAttribute('data-slopblock-urn');
       if (urn && !window.LinkedInFilter.userRevealed.has(urn)) {
-        window.LinkedInFilter.updateOverlayStyle(post, filterSettings.opaqueOverlay, filterSettings.hideRevealButton);
+        window.LinkedInFilter.updateOverlayStyle(post, filterSettings.opaqueOverlay, filterSettings.hideRevealButton, filterSettings.showPosterInfo);
       }
     }
   }

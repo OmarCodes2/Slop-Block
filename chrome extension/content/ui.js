@@ -3,7 +3,9 @@ window.LinkedInFilter = window.LinkedInFilter || {};
 window.LinkedInFilter.userRevealed = new Set();
 
 // actorInfo: null (v1 placeholder) or { actorName, actorProfileUrl?, actorPfpUrl? } for v2
-function getPosterHtml(actorInfo) {
+// showPosterInfo: boolean to control whether to display poster info
+function getPosterHtml(actorInfo, showPosterInfo = true) {
+  if (!showPosterInfo) return '';
   const name = (actorInfo && actorInfo.actorName && String(actorInfo.actorName).trim()) || null;
   const pfpUrl = (actorInfo && actorInfo.actorPfpUrl && String(actorInfo.actorPfpUrl).trim()) || null;
   if (!name && !pfpUrl) return '';
@@ -20,7 +22,7 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-window.LinkedInFilter.blurPost = function(postElement, isPending = false, label = "Unsure", opaqueMode = false, hideRevealButton = false, actorInfo = null) {
+window.LinkedInFilter.blurPost = function(postElement, isPending = false, label = "Unsure", opaqueMode = false, hideRevealButton = false, showPosterInfo = true, actorInfo = null) {
   if (postElement.classList.contains('linkedin-filter-blurred')) {
     return;
   }
@@ -31,13 +33,14 @@ window.LinkedInFilter.blurPost = function(postElement, isPending = false, label 
   }
 
   postElement._slopBlockActorInfo = actorInfo;
+  postElement._slopBlockShowPosterInfo = showPosterInfo;
 
   const overlay = document.createElement('div');
   overlay.className = 'linkedin-filter-overlay' + (opaqueMode ? ' linkedin-filter-overlay-opaque' : '');
   overlay.setAttribute('data-pending', isPending ? 'true' : 'false');
 
   const revealButtonHtml = hideRevealButton ? '' : '<button class="linkedin-filter-reveal-button">Reveal Post</button>';
-  const posterHtml = getPosterHtml(actorInfo);
+  const posterHtml = getPosterHtml(actorInfo, showPosterInfo);
   overlay.innerHTML = `
     <div class="linkedin-filter-message">
       ${posterHtml}
@@ -92,7 +95,7 @@ window.LinkedInFilter.updateOverlayLabel = function(postElement, label) {
   }
 };
 
-window.LinkedInFilter.updateOverlayStyle = function(postElement, opaqueMode = false, hideRevealButton = false) {
+window.LinkedInFilter.updateOverlayStyle = function(postElement, opaqueMode = false, hideRevealButton = false, showPosterInfo = true) {
   const overlay = postElement.querySelector('.linkedin-filter-overlay');
   if (!overlay) return;
   
@@ -139,7 +142,9 @@ window.LinkedInFilter.updateOverlayStyle = function(postElement, opaqueMode = fa
   
   // Update overlay content: poster (from stored actorInfo) + title + label; reveal button only when not hidden
   const storedActorInfo = postElement._slopBlockActorInfo;
-  const posterHtml = getPosterHtml(storedActorInfo);
+  // Update the stored value with the new setting
+  postElement._slopBlockShowPosterInfo = showPosterInfo;
+  const posterHtml = getPosterHtml(storedActorInfo, showPosterInfo);
   const revealButtonHtml = hideRevealButton ? '' : '<button class="linkedin-filter-reveal-button">Reveal Post</button>';
   const message = overlay.querySelector('.linkedin-filter-message');
   if (message) {
