@@ -55,7 +55,7 @@ async function loadFilterSettings() {
       aiEnabled: result.aiEnabled !== undefined ? result.aiEnabled : true,
       opaqueOverlay: result.opaqueOverlay !== undefined ? result.opaqueOverlay : false,
       hideRevealButton: result.hideRevealButton !== undefined ? result.hideRevealButton : false,
-      showPosterInfo: result.showPosterInfo !== undefined ? result.showPosterInfo : true
+      showPosterInfo: true
     };
   } catch (error) {
     console.error('[LinkedIn Filter] Error loading settings:', error);
@@ -883,6 +883,7 @@ function updateAllOverlayStyles() {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'settingsChanged') {
     filterSettings = message.settings || filterSettings;
+    filterSettings.showPosterInfo = true;
     updateAllOverlayStyles();
     reEvaluateAllPosts();
     sendResponse({ success: true });

@@ -87,7 +87,7 @@ function getAllToggleValues() {
     aiEnabled: document.getElementById('toggle-ai-enabled').checked,
     opaqueOverlay: document.getElementById('toggle-opaque-overlay').checked,
     hideRevealButton: document.getElementById('toggle-hide-reveal-button').checked,
-    showPosterInfo: document.getElementById('toggle-show-poster-info').checked,
+    showPosterInfo: true,
     experimentalFilters: document.getElementById('toggle-experimental-filters').checked
   };
 }
@@ -139,7 +139,6 @@ async function initializePopup() {
   document.getElementById('toggle-ai-enabled').checked = settings.aiEnabled;
   document.getElementById('toggle-opaque-overlay').checked = settings.opaqueOverlay;
   document.getElementById('toggle-hide-reveal-button').checked = settings.hideRevealButton;
-  document.getElementById('toggle-show-poster-info').checked = settings.showPosterInfo;
   document.getElementById('toggle-experimental-filters').checked = settings.experimentalFilters;
   
   // Check AI availability and update UI
@@ -183,7 +182,6 @@ async function initializePopup() {
   addToggleListener('toggle-ai-enabled');
   addToggleListener('toggle-opaque-overlay');
   addToggleListener('toggle-hide-reveal-button');
-  addToggleListener('toggle-show-poster-info');
   addToggleListener('toggle-experimental-filters');
 
   // Tab navigation
