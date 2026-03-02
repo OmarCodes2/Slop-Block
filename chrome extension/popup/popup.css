@@ -21,6 +21,10 @@ body {
 }
 
 .popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   padding: 20px;
   background: linear-gradient(135deg, #0A66C2 0%, #004182 100%);
   color: #ffffff;
@@ -39,8 +43,19 @@ body {
   display: block;
   max-height: 48px;
   width: auto;
-  margin: 0 auto;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.beta-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
 }
 
 .tab-navigation {
