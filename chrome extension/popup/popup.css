@@ -113,10 +113,6 @@ body {
   background: #151923;
 }
 
-.popup-content:has(#settings-tab.active) {
-  overflow-y: hidden;
-}
-
 .popup-content::-webkit-scrollbar {
   width: 6px;
 }

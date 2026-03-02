@@ -28,14 +28,15 @@ let filterSettings = {
   experimentalFilters: false,
   aiEnabled: true,
   opaqueOverlay: false,
-  hideRevealButton: false
+  hideRevealButton: false,
+  showPosterInfo: true
 };
 async function loadFilterSettings() {
   try {
     const result = await chrome.storage.sync.get([
       'extensionEnabled', 'showHiringPosts', 'showJobAnnouncements', 'showGrindset',
       'showSponsored', 'showSalesPitch', 'showJobSeeking', 'showEvents',
-      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'experimentalFilters', 'aiEnabled', 'opaqueOverlay', 'hideRevealButton'
+      'showEducational', 'showProjectLaunch', 'showCongrats', 'showOther', 'experimentalFilters', 'aiEnabled', 'opaqueOverlay', 'hideRevealButton', 'showPosterInfo'
     ]);
     filterSettings = {
       extensionEnabled: result.extensionEnabled !== undefined ? result.extensionEnabled : true,
@@ -53,7 +54,8 @@ async function loadFilterSettings() {
       experimentalFilters: result.experimentalFilters !== undefined ? result.experimentalFilters : false,
       aiEnabled: result.aiEnabled !== undefined ? result.aiEnabled : true,
       opaqueOverlay: result.opaqueOverlay !== undefined ? result.opaqueOverlay : false,
-      hideRevealButton: result.hideRevealButton !== undefined ? result.hideRevealButton : false
+      hideRevealButton: result.hideRevealButton !== undefined ? result.hideRevealButton : false,
+      showPosterInfo: true
     };
   } catch (error) {
     console.error('[LinkedIn Filter] Error loading settings:', error);
@@ -278,6 +280,215 @@ async function categorizePostWithAI(postElement, urn) {
   }
 }
 
+// Invalid actor name labels (from LinkedIn UI) - do not use as display name
+const INVALID_ACTOR_NAMES = new Set([
+  'Follow', 'Promoted', 'Feed post', 'Like', 'Comment', 'Repost', 'Send', 'View more options'
+]);
+
+const ACTOR_URL_PATTERNS = /linkedin\.com\/(in|company|school)\//;
+
+// Match both ASCII apostrophe (') and Unicode right single quote (')
+const APOS = "'\u2019";
+
+/** Return just the name: strip "company: ", "'s profile", " profile", trailing "'s". */
+function normalizeActorName(s) {
+  if (!s || typeof s !== 'string') return '';
+  let t = s.trim();
+  t = t.replace(/^company:\s*/i, '').trim();
+  t = t.replace(new RegExp(`[${APOS}]s\\s+profile$`, 'i'), '').trim();
+  t = t.replace(/\s+profile$/i, '').trim();
+  t = t.replace(new RegExp(`[${APOS}]s$`, 'i'), '').trim();
+  return t.trim();
+}
+
+function extractNameFromLabel(label) {
+  if (!label || typeof label !== 'string') return '';
+  let t = label.trim();
+  t = t.replace(/^view[:\s]+/i, '');
+  t = t.replace(/^open control menu for post by\s+/i, '');
+  t = t.replace(/^dismiss post by\s+/i, '');
+  t = t.split(' • ')[0];
+  t = t.replace(/\s+premium\b.*$/i, '');
+  t = t.replace(/\s+link$/i, '');
+  t = t.replace(new RegExp(`[${APOS}]s.*$`, 'i'), '');
+  return normalizeActorName(t);
+}
+
+/**
+ * Extract actor info from a single feed post root (v2 DOM only).
+ * Post root = element with role="listitem" that contains [data-view-name="feed-full-update"].
+ * Returns { actorName, actorProfileUrl, actorPfpUrl } or null if invalid.
+ * DOM-only; no network requests. Uses data-view-name, href patterns, aria-label, alt.
+ */
+function extractActorFromPost(postRoot) {
+  if (!postRoot || !postRoot.querySelector) return null;
+
+  const feedFull = postRoot.querySelector('[data-view-name="feed-full-update"]');
+  if (!feedFull) return null;
+
+  // 2) Choose actor anchor: prefer original author (feed-actor-image), then header (feed-header-actor-image)
+  let anchor = feedFull.querySelector('a[data-view-name="feed-actor-image"][href]');
+  if (anchor && anchor.href && ACTOR_URL_PATTERNS.test(anchor.href)) {
+    // use this
+  } else {
+    anchor = feedFull.querySelector('a[data-view-name="feed-header-actor-image"][href]');
+  }
+  if (!anchor || !anchor.href || !ACTOR_URL_PATTERNS.test(anchor.href)) {
+    const actorImageAnchors = feedFull.querySelectorAll('a[data-view-name$="actor-image"][href]');
+    for (const a of actorImageAnchors) {
+      if (a.href && ACTOR_URL_PATTERNS.test(a.href)) {
+        anchor = a;
+        break;
+      }
+    }
+  }
+  if (!anchor || !anchor.href || !ACTOR_URL_PATTERNS.test(anchor.href)) {
+    const commentary = feedFull.querySelector('[data-view-name="feed-commentary"], [data-testid="expandable-text-box"]');
+    const allActorLinks = feedFull.querySelectorAll('a[href*="linkedin.com/in/"], a[href*="linkedin.com/company/"], a[href*="linkedin.com/school/"]');
+    for (const a of allActorLinks) {
+      if (commentary && commentary.contains(a)) continue;
+      anchor = a;
+      break;
+    }
+    if (!anchor) anchor = allActorLinks[0] || null;
+  }
+
+  if (!anchor || !anchor.href) return null;
+
+  const actorProfileUrl = anchor.href.startsWith('http') ? anchor.href : new URL(anchor.href, document.baseURI).href;
+  if (!ACTOR_URL_PATTERNS.test(actorProfileUrl)) return null;
+
+  // 3) actorName
+  let actorName = null;
+  const strong = anchor.querySelector('strong');
+  const p = anchor.querySelector('p');
+  if (strong && strong.textContent && strong.textContent.trim()) {
+    actorName = strong.textContent.trim();
+  } else if (p && p.textContent && p.textContent.trim()) {
+    actorName = p.textContent.trim();
+  }
+  if (!actorName) {
+    const avatarImg = anchor.querySelector('img[alt]') || anchor.querySelector('figure img[alt]');
+    if (avatarImg && avatarImg.alt) {
+      let alt = avatarImg.alt.trim();
+      if (alt.startsWith('View ')) {
+        alt = alt.slice(5);
+        alt = alt.replace(new RegExp(`[${APOS}]s profile$`, 'i'), '').replace(/\s+profile$/i, '').replace(/\s+company:\s*$/i, '').trim();
+      }
+      if (alt && alt.length < 200) actorName = alt;
+    }
+  }
+  if (!actorName && anchor.closest) {
+    const row = anchor.closest('div');
+    if (row) {
+      const paragraphs = row.querySelectorAll('p');
+      for (const para of paragraphs) {
+        const text = para.textContent && para.textContent.trim();
+        if (text && text.length > 0 && text.length < 80) {
+          actorName = text;
+          break;
+        }
+      }
+    }
+  }
+  if (!actorName) {
+    try {
+      const url = new URL(actorProfileUrl);
+      const path = url.pathname;
+      const companyMatch = path.match(/\/company\/([^/]+)/);
+      const inMatch = path.match(/\/in\/([^/]+)/);
+      const schoolMatch = path.match(/\/school\/([^/]+)/);
+      const slug = (companyMatch && companyMatch[1]) || (inMatch && inMatch[1]) || (schoolMatch && schoolMatch[1]);
+      if (slug) {
+        actorName = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      }
+    } catch (_) {}
+  }
+
+  actorName = normalizeActorName(actorName);
+  if (!actorName || INVALID_ACTOR_NAMES.has(actorName)) return null;
+
+  // 4) actorPfpUrl
+  let actorPfpUrl = null;
+  const pfpImg = anchor.querySelector('img[src]');
+  if (pfpImg && pfpImg.src && pfpImg.src.startsWith('http') && pfpImg.src.includes('media.licdn.com') && !pfpImg.src.startsWith('data:')) {
+    actorPfpUrl = pfpImg.src;
+  }
+  if (!actorPfpUrl) {
+    const figure = anchor.querySelector('figure') || anchor.closest('figure');
+    const figImg = figure && figure.querySelector('img[src]');
+    if (figImg && figImg.src && figImg.src.startsWith('http') && figImg.src.includes('media.licdn.com')) {
+      actorPfpUrl = figImg.src;
+    }
+  }
+
+  return { actorName, actorProfileUrl, actorPfpUrl: actorPfpUrl || null };
+}
+
+/**
+ * Extract actor info from a single feed post root (v1 DOM only).
+ * Post root = element that contains .update-components-actor__container.
+ * Returns { actorName, actorProfileUrl, actorPfpUrl } or null if invalid.
+ */
+function extractActorFromV1Post(postRoot) {
+  if (!postRoot || !postRoot.querySelector) return null;
+
+  const actorContainer = postRoot.querySelector('.update-components-actor__container');
+  if (!actorContainer) return null;
+
+  let anchor = actorContainer.querySelector('a.update-components-actor__image[href]')
+    || actorContainer.querySelector('a.update-components-actor__meta-link[href]');
+
+  if (!anchor) {
+    const links = actorContainer.querySelectorAll('a[href*="linkedin.com/in/"], a[href*="linkedin.com/company/"], a[href*="linkedin.com/school/"]');
+    anchor = links[0] || null;
+  }
+  if (!anchor || !anchor.href) return null;
+
+  const actorProfileUrl = anchor.href.startsWith('http') ? anchor.href : new URL(anchor.href, document.baseURI).href;
+  if (!ACTOR_URL_PATTERNS.test(actorProfileUrl)) return null;
+
+  let actorName = null;
+  const nameSpan = actorContainer.querySelector('.update-components-actor__single-line-truncate span[aria-hidden="true"]');
+  if (nameSpan && nameSpan.textContent && nameSpan.textContent.trim()) {
+    actorName = nameSpan.textContent.trim();
+  }
+  if (!actorName && anchor.getAttribute) {
+    actorName = extractNameFromLabel(anchor.getAttribute('aria-label'));
+  }
+  if (!actorName) {
+    const altImg = actorContainer.querySelector('img[alt]');
+    if (altImg && altImg.alt) {
+      actorName = extractNameFromLabel(altImg.alt);
+    }
+  }
+  if (!actorName) {
+    try {
+      const url = new URL(actorProfileUrl);
+      const path = url.pathname;
+      const companyMatch = path.match(/\/company\/([^/]+)/);
+      const inMatch = path.match(/\/in\/([^/]+)/);
+      const schoolMatch = path.match(/\/school\/([^/]+)/);
+      const slug = (companyMatch && companyMatch[1]) || (inMatch && inMatch[1]) || (schoolMatch && schoolMatch[1]);
+      if (slug) {
+        actorName = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      }
+    } catch (_) {}
+  }
+
+  actorName = normalizeActorName(actorName);
+  if (!actorName || INVALID_ACTOR_NAMES.has(actorName)) return null;
+
+  let actorPfpUrl = null;
+  const pfpImg = actorContainer.querySelector('img.update-components-actor__avatar-image[src]')
+    || actorContainer.querySelector('img[src]');
+  if (pfpImg && pfpImg.src && pfpImg.src.startsWith('http') && pfpImg.src.includes('media.licdn.com') && !pfpImg.src.startsWith('data:')) {
+    actorPfpUrl = pfpImg.src;
+  }
+
+  return { actorName, actorProfileUrl, actorPfpUrl: actorPfpUrl || null };
+}
+
 function blockPost(postElement, urn, classification) {
   if (window.LinkedInFilter.userRevealed.has(urn)) {
     return;
@@ -316,8 +527,16 @@ function blockPost(postElement, urn, classification) {
   } else if (classification === "other") {
     label = "Uncategorized";
   }
-  
-  window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay, filterSettings.hideRevealButton);
+
+  // Extract actor info from the right DOM version.
+  let actorInfo = null;
+  if (isInsideNewFeed(postElement)) {
+    actorInfo = extractActorFromPost(postElement);
+  } else {
+    actorInfo = extractActorFromV1Post(postElement);
+  }
+
+  window.LinkedInFilter.blurPost(postElement, false, label, filterSettings.opaqueOverlay, filterSettings.hideRevealButton, filterSettings.showPosterInfo, actorInfo);
 }
 
 function findFeedContainer() {
@@ -655,7 +874,7 @@ function updateAllOverlayStyles() {
     for (const post of blurredPosts) {
       const urn = post.getAttribute('data-urn') || post.getAttribute('data-slopblock-urn');
       if (urn && !window.LinkedInFilter.userRevealed.has(urn)) {
-        window.LinkedInFilter.updateOverlayStyle(post, filterSettings.opaqueOverlay, filterSettings.hideRevealButton);
+        window.LinkedInFilter.updateOverlayStyle(post, filterSettings.opaqueOverlay, filterSettings.hideRevealButton, filterSettings.showPosterInfo);
       }
     }
   }
@@ -664,6 +883,7 @@ function updateAllOverlayStyles() {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'settingsChanged') {
     filterSettings = message.settings || filterSettings;
+    filterSettings.showPosterInfo = true;
     updateAllOverlayStyles();
     reEvaluateAllPosts();
     sendResponse({ success: true });
