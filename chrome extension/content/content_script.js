@@ -7,6 +7,9 @@ const FEED_ROOT_NEW_SELECTOR = 'div[data-testid="mainFeed"][data-component-type=
 const POST_MARKER_NEW_SELECTOR = 'div[data-view-name="feed-full-update"]';
 const POST_ROOT_ROLE_NEW = 'listitem';
 
+// V3 LinkedIn feed DOM - same feed/container as V2, but different post marker
+const POST_MARKER_V3_SELECTOR = 'h2'; // V3 posts marked by h2 element instead of data-view-name
+
 const EXPERIMENTAL_CLASSIFICATIONS = new Set([
   'sales_pitch', 'job_seeking', 'events',
   'educational', 'project_launch', 'congrats'
@@ -133,18 +136,43 @@ const JOB_CARD_SELECTOR = '[data-view-name="job-card"]';
 
 function getNewFeedPostRoots(scope) {
   if (!scope || scope.nodeType !== Node.ELEMENT_NODE) return [];
-  const markers = scope.querySelectorAll(POST_MARKER_NEW_SELECTOR);
+  
+  // Collect all V2 and V3 post listitems from the feed
   const roots = new Set();
-  markers.forEach((el) => {
+  
+  // V2 posts: look for V2 marker (data-view-name="feed-full-update")
+  const v2Markers = scope.querySelectorAll(POST_MARKER_NEW_SELECTOR);
+  v2Markers.forEach((el) => {
     const listItem = el.closest('div[role="' + POST_ROOT_ROLE_NEW + '"]');
     if (listItem) {
-      // Skip listitems that are or contain job cards (recommended jobs), not feed posts
       if (listItem.querySelector(JOB_CARD_SELECTOR) || listItem.closest(JOB_CARD_SELECTOR)) {
         return;
       }
       roots.add(listItem);
     }
   });
+  
+  // V3 posts: look for V3 marker (h2 without existing V2 marker)
+  // Get all listitems, filter to those with h2 but no V2 marker
+  const allListItems = scope.querySelectorAll('div[role="' + POST_ROOT_ROLE_NEW + '"]');
+  allListItems.forEach((listItem) => {
+    // Skip if already found as V2
+    if (roots.has(listItem)) return;
+    
+    // Skip job cards
+    if (listItem.querySelector(JOB_CARD_SELECTOR) || listItem.closest(JOB_CARD_SELECTOR)) {
+      return;
+    }
+    
+    // Check if this is a V3 post: has h2 but no V2 marker
+    const hasV3Marker = listItem.querySelector(POST_MARKER_V3_SELECTOR);
+    const hasV2Marker = listItem.querySelector(POST_MARKER_NEW_SELECTOR);
+    
+    if (hasV3Marker && !hasV2Marker) {
+      roots.add(listItem);
+    }
+  });
+  
   return Array.from(roots);
 }
 
@@ -426,6 +454,86 @@ function extractActorFromPost(postRoot) {
 }
 
 /**
+ * Extract actor info from a single feed post root (V3 DOM).
+ * Post root = element with role="listitem" that contains h2 marker (no data-view-name="feed-full-update").
+ * Returns { actorName, actorProfileUrl, actorPfpUrl } or null if invalid.
+ * Works with generic link structure; does not rely on data-view-name attributes.
+ */
+function extractActorFromV3Post(postRoot) {
+  if (!postRoot || !postRoot.querySelector) return null;
+
+  // Find first actor profile link in the post (usually near the top after h2 marker)
+  const allActorLinks = postRoot.querySelectorAll('a[href*="linkedin.com/in/"], a[href*="linkedin.com/company/"], a[href*="linkedin.com/school/"]');
+  
+  let anchor = null;
+  for (const link of allActorLinks) {
+    if (link.href && ACTOR_URL_PATTERNS.test(link.href)) {
+      anchor = link;
+      break;
+    }
+  }
+  
+  if (!anchor || !anchor.href) return null;
+
+  const actorProfileUrl = anchor.href.startsWith('http') ? anchor.href : new URL(anchor.href, document.baseURI).href;
+  if (!ACTOR_URL_PATTERNS.test(actorProfileUrl)) return null;
+
+  // Extract actor name from link content or image alt text
+  let actorName = null;
+  
+  // Try to get name from text content within the link (p or div tags)
+  const p = anchor.querySelector('p');
+  if (p && p.textContent && p.textContent.trim()) {
+    actorName = p.textContent.trim();
+  }
+  
+  // Try alt text from image
+  if (!actorName) {
+    const img = anchor.querySelector('img[alt]');
+    if (img && img.alt) {
+      let alt = img.alt.trim();
+      if (alt.startsWith('View ')) {
+        alt = alt.slice(5);
+        alt = alt.replace(new RegExp(`[${APOS}]s profile$`, 'i'), '').replace(/\s+profile$/i, '').replace(/\s+company:\s*$/i, '').trim();
+      }
+      if (alt && alt.length < 200) actorName = alt;
+    }
+  }
+  
+  // Try aria-label
+  if (!actorName && anchor.getAttribute('aria-label')) {
+    actorName = extractNameFromLabel(anchor.getAttribute('aria-label'));
+  }
+  
+  // Fallback: extract from profile URL slug
+  if (!actorName) {
+    try {
+      const url = new URL(actorProfileUrl);
+      const path = url.pathname;
+      const companyMatch = path.match(/\/company\/([^/]+)/);
+      const inMatch = path.match(/\/in\/([^/]+)/);
+      const schoolMatch = path.match(/\/school\/([^/]+)/);
+      const slug = (companyMatch && companyMatch[1]) || (inMatch && inMatch[1]) || (schoolMatch && schoolMatch[1]);
+      if (slug) {
+        actorName = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      }
+    } catch (_) {}
+  }
+
+  actorName = normalizeActorName(actorName);
+  if (!actorName || INVALID_ACTOR_NAMES.has(actorName)) return null;
+
+  // Extract profile picture URL
+  let actorPfpUrl = null;
+  const img = anchor.querySelector('img[src]');
+  if (img && img.src && img.src.startsWith('http') && img.src.includes('media.licdn.com') && !img.src.startsWith('data:')) {
+    actorPfpUrl = img.src;
+  }
+
+  return { actorName, actorProfileUrl, actorPfpUrl: actorPfpUrl || null };
+}
+
+/**
  * Extract actor info from a single feed post root (v1 DOM only).
  * Post root = element that contains .update-components-actor__container.
  * Returns { actorName, actorProfileUrl, actorPfpUrl } or null if invalid.
@@ -531,8 +639,22 @@ function blockPost(postElement, urn, classification) {
   // Extract actor info from the right DOM version.
   let actorInfo = null;
   if (isInsideNewFeed(postElement)) {
-    actorInfo = extractActorFromPost(postElement);
+    // Differentiate between V2 and V3 posts in the new feed
+    const hasV2Marker = postElement.querySelector(POST_MARKER_NEW_SELECTOR);
+    const hasV3Marker = postElement.querySelector(POST_MARKER_V3_SELECTOR);
+    
+    if (hasV2Marker) {
+      // V2 post
+      actorInfo = extractActorFromPost(postElement);
+    } else if (hasV3Marker && !hasV2Marker) {
+      // V3 post
+      actorInfo = extractActorFromV3Post(postElement);
+    } else {
+      // Fallback to V2 extractor if markers not found
+      actorInfo = extractActorFromPost(postElement);
+    }
   } else {
+    // V1 post
     actorInfo = extractActorFromV1Post(postElement);
   }
 
