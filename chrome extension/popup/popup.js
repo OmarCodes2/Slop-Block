@@ -183,10 +183,17 @@ async function initializePopup() {
   addToggleListener('toggle-opaque-overlay');
   addToggleListener('toggle-hide-reveal-button');
   addToggleListener('toggle-experimental-filters');
+}
 
-  // Tab navigation
+function setupTabNavigation() {
   const tabButtons = document.querySelectorAll('.tab-button');
   const tabPanels = document.querySelectorAll('.tab-panel');
+  
+  // Ensure elements exist
+  if (tabButtons.length === 0 || tabPanels.length === 0) {
+    console.warn('[Slop Block] Tab elements not found in DOM');
+    return;
+  }
   
   tabButtons.forEach(button => {
     button.addEventListener('click', () => {
@@ -198,11 +205,23 @@ async function initializePopup() {
       
       // Add active class to clicked button and corresponding panel
       button.classList.add('active');
-      document.getElementById(`${targetTab}-tab`).classList.add('active');
+      const targetPanel = document.getElementById(`${targetTab}-tab`);
+      if (targetPanel) {
+        targetPanel.classList.add('active');
+      }
     });
   });
 }
 
+// Set up tab navigation as early as possible
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupTabNavigation);
+} else {
+  // DOM already ready, set up tabs immediately
+  setupTabNavigation();
+}
+
+// Then initialize settings
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializePopup);
 } else {
