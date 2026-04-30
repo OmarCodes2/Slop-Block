@@ -149,23 +149,25 @@ async function initializePopup() {
   const aiToggle = document.getElementById('toggle-ai-enabled');
   const aiDescription = document.getElementById('ai-description');
   
-  if (aiAvailability === "unavailable" || aiAvailability === "downloadable") {
-    aiToggle.disabled = true;
-    aiToggle.checked = false;
-    aiToggle.parentElement.style.opacity = "0.5";
-    aiToggle.parentElement.style.cursor = "not-allowed";
-    
-    if (aiAvailability === "unavailable") {
-      aiDescription.innerHTML = "Enable or disable AI to categorize a post. Chrome AI not available - requires Chrome 127+. <a href='https://huggingface.co/blog/Xenova/run-gemini-nano-in-your-browser' target='_blank'>Installation guide</a>";
-    } else {
-      aiDescription.innerHTML = "Enable or disable AI to categorize a post. Model not downloaded - requires Chrome 127+. <a href='https://huggingface.co/blog/Xenova/run-gemini-nano-in-your-browser' target='_blank'>Installation guide</a>";
+  if (aiToggle && aiDescription) {
+    if (aiAvailability === "unavailable" || aiAvailability === "downloadable") {
+      aiToggle.disabled = true;
+      aiToggle.checked = false;
+      aiToggle.parentElement.style.opacity = "0.5";
+      aiToggle.parentElement.style.cursor = "not-allowed";
+      
+      if (aiAvailability === "unavailable") {
+        aiDescription.innerHTML = "Enable or disable AI to categorize a post. Chrome AI not available - requires Chrome 127+. <a href='https://huggingface.co/blog/Xenova/run-gemini-nano-in-your-browser' target='_blank'>Installation guide</a>";
+      } else {
+        aiDescription.innerHTML = "Enable or disable AI to categorize a post. Model not downloaded - requires Chrome 127+. <a href='https://huggingface.co/blog/Xenova/run-gemini-nano-in-your-browser' target='_blank'>Installation guide</a>";
+      }
+    } else if (aiAvailability === "downloading") {
+      aiToggle.disabled = true;
+      aiToggle.checked = false;
+      aiToggle.parentElement.style.opacity = "0.5";
+      aiToggle.parentElement.style.cursor = "not-allowed";
+      aiDescription.textContent = "Enable or disable AI to categorize a post. Model downloading - reload this page once complete";
     }
-  } else if (aiAvailability === "downloading") {
-    aiToggle.disabled = true;
-    aiToggle.checked = false;
-    aiToggle.parentElement.style.opacity = "0.5";
-    aiToggle.parentElement.style.cursor = "not-allowed";
-    aiDescription.textContent = "Enable or disable AI to categorize a post. Model downloading - reload this page once complete";
   }
 
   updateExperimentalFiltersVisibility(settings.experimentalFilters);
