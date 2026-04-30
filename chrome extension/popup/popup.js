@@ -112,16 +112,13 @@ function addToggleListener(toggleId) {
 }
 
 async function checkAIAvailability() {
-  // TESTING: Force unavailable to test UI
-  return "unavailable";
-  
-  // try {
-  //   const response = await chrome.runtime.sendMessage({ action: 'checkAIAvailability' });
-  //   return response.availability || "unavailable";
-  // } catch (err) {
-  //   console.error('[Slop Block] Error checking AI availability:', err);
-  //   return "unavailable";
-  // }
+  try {
+    const response = await chrome.runtime.sendMessage({ action: 'checkAIAvailability' });
+    return response.availability || "unavailable";
+  } catch (err) {
+    console.error('[Slop Block] Error checking AI availability:', err);
+    return "unavailable";
+  }
 }
 
 async function initializePopup() {
