@@ -128,7 +128,31 @@ function getOrAssignNewDomUrn(listItem) {
 }
 
 function findNewFeedContainer() {
-  return document.querySelector(FEED_ROOT_NEW_SELECTOR);
+  const candidates = Array.from(document.querySelectorAll(FEED_ROOT_NEW_SELECTOR));
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  if (candidates.length === 1) {
+    return candidates[0];
+  }
+
+  let bestCandidate = candidates[0];
+  let bestScore = -1;
+
+  for (const candidate of candidates) {
+    const listItems = candidate.querySelectorAll('[role="listitem"], [role="article"]').length;
+    const v2Markers = candidate.querySelectorAll(POST_MARKER_NEW_SELECTOR).length;
+    const v3Markers = candidate.querySelectorAll(POST_MARKER_V3_SELECTOR).length;
+    const score = (listItems * 10) + (v2Markers * 5) + (v3Markers * 3);
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestCandidate = candidate;
+    }
+  }
+
+  return bestCandidate;
 }
 
 // Job cards ("Jobs recommended for you") are not posts — exclude them from filtering
@@ -143,7 +167,7 @@ function getNewFeedPostRoots(scope) {
   // V2 posts: look for V2 marker (data-view-name="feed-full-update")
   const v2Markers = scope.querySelectorAll(POST_MARKER_NEW_SELECTOR);
   v2Markers.forEach((el) => {
-    const listItem = el.closest('div[role="' + POST_ROOT_ROLE_NEW + '"]');
+    const listItem = el.closest('[role="listitem"], [role="article"]');
     if (listItem) {
       if (listItem.querySelector(JOB_CARD_SELECTOR) || listItem.closest(JOB_CARD_SELECTOR)) {
         return;
@@ -154,7 +178,7 @@ function getNewFeedPostRoots(scope) {
   
   // V3 posts: look for V3 marker (h2 without existing V2 marker)
   // Get all listitems, filter to those with h2 but no V2 marker
-  const allListItems = scope.querySelectorAll('div[role="' + POST_ROOT_ROLE_NEW + '"]');
+  const allListItems = scope.querySelectorAll('[role="listitem"], [role="article"]');
   allListItems.forEach((listItem) => {
     // Skip if already found as V2
     if (roots.has(listItem)) return;
@@ -799,6 +823,18 @@ function startInitialization() {
 }
 
 startInitialization();
+
+function scheduleStartupRescans() {
+  const delays = [1000, 3000, 6000];
+
+  for (const delay of delays) {
+    setTimeout(() => {
+      reEvaluateAllPosts();
+    }, delay);
+  }
+}
+
+scheduleStartupRescans();
 
 function setupNewPostsReloadListener() {
   console.log('[LinkedIn Filter] Setting up New posts button listener...');
