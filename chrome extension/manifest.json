@@ -11,7 +11,7 @@
     "https://www.linkedin.com/*"
   ],
   "background": {
-    "service_worker": "background/service_worker.js",
+    "service_worker": "src/background/serviceWorker.js",
     "type": "module"
   },
   "content_scripts": [
@@ -21,12 +21,25 @@
         "https://www.linkedin.com/*"
       ],
       "js": [
-        "content/filter.js",
-        "content/ui.js",
-        "content/content_script.js"
+        "src/content/blocking/postState.js",
+        "src/content/posts/postText.js",
+        "src/content/posts/postIdentity.js",
+        "src/content/posts/postMetadata.js",
+        "src/content/classification/categoryConfig.js",
+        "src/content/classification/ruleOrder.js",
+        "src/content/classification/classifyPost.js",
+        "src/content/blocking/shouldBlockPost.js",
+        "src/content/overlay/renderOverlay.js",
+        "src/content/overlay/updateOverlay.js",
+        "src/content/overlay/removeOverlay.js",
+        "src/content/ai/aiLabelClient.js",
+        "src/content/observer/postDiscovery.js",
+        "src/content/observer/feedObserver.js",
+        "src/content/observer/navigationWatcher.js",
+        "src/content/index.js"
       ],
       "css": [
-        "content/styles.css"
+        "src/content/styles.css"
       ],
       "run_at": "document_idle"
     }
@@ -37,7 +50,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_popup": "popup/popup.html",
+    "default_popup": "src/popup/popup.html",
     "default_title": "Slop Block"
   }
 }
