@@ -71,24 +71,30 @@ function notifyContentScript(settings) {
 }
 
 function getAllToggleValues() {
+  function getCheckboxValue(id, key) {
+    const el = document.getElementById(id);
+    if (!el) return DEFAULT_SETTINGS[key];
+    return !!el.checked;
+  }
+
   return {
-    extensionEnabled: document.getElementById('toggle-extension-enabled').checked,
-    showHiringPosts: document.getElementById('toggle-hiring-posts').checked,
-    showJobAnnouncements: document.getElementById('toggle-job-announcements').checked,
-    showGrindset: document.getElementById('toggle-grindset').checked,
-    showSponsored: document.getElementById('toggle-sponsored').checked,
-    showSalesPitch: document.getElementById('toggle-sales-pitch').checked,
-    showJobSeeking: document.getElementById('toggle-job-seeking').checked,
-    showEvents: document.getElementById('toggle-events').checked,
-    showEducational: document.getElementById('toggle-educational').checked,
-    showProjectLaunch: document.getElementById('toggle-project-launch').checked,
-    showCongrats: document.getElementById('toggle-congrats').checked,
-    showOther: document.getElementById('toggle-other').checked,
-    aiEnabled: document.getElementById('toggle-ai-enabled').checked,
-    opaqueOverlay: document.getElementById('toggle-opaque-overlay').checked,
-    hideRevealButton: document.getElementById('toggle-hide-reveal-button').checked,
-    showPosterInfo: true,
-    experimentalFilters: document.getElementById('toggle-experimental-filters').checked
+    extensionEnabled: getCheckboxValue('toggle-extension-enabled', 'extensionEnabled'),
+    showHiringPosts: getCheckboxValue('toggle-hiring-posts', 'showHiringPosts'),
+    showJobAnnouncements: getCheckboxValue('toggle-job-announcements', 'showJobAnnouncements'),
+    showGrindset: getCheckboxValue('toggle-grindset', 'showGrindset'),
+    showSponsored: getCheckboxValue('toggle-sponsored', 'showSponsored'),
+    showSalesPitch: getCheckboxValue('toggle-sales-pitch', 'showSalesPitch'),
+    showJobSeeking: getCheckboxValue('toggle-job-seeking', 'showJobSeeking'),
+    showEvents: getCheckboxValue('toggle-events', 'showEvents'),
+    showEducational: getCheckboxValue('toggle-educational', 'showEducational'),
+    showProjectLaunch: getCheckboxValue('toggle-project-launch', 'showProjectLaunch'),
+    showCongrats: getCheckboxValue('toggle-congrats', 'showCongrats'),
+    showOther: getCheckboxValue('toggle-other', 'showOther'),
+    aiEnabled: getCheckboxValue('toggle-ai-enabled', 'aiEnabled'),
+    opaqueOverlay: getCheckboxValue('toggle-opaque-overlay', 'opaqueOverlay'),
+    hideRevealButton: getCheckboxValue('toggle-hide-reveal-button', 'hideRevealButton'),
+    showPosterInfo: DEFAULT_SETTINGS.showPosterInfo,
+    experimentalFilters: getCheckboxValue('toggle-experimental-filters', 'experimentalFilters')
   };
 }
 
@@ -102,6 +108,11 @@ function updateExperimentalFiltersVisibility(enabled) {
 
 function addToggleListener(toggleId) {
   const toggle = document.getElementById(toggleId);
+  if (!toggle) {
+    console.warn('[Slop Block] Toggle not found:', toggleId);
+    return;
+  }
+
   toggle.addEventListener('change', async (e) => {
     const newSettings = getAllToggleValues();
     await saveSettings(newSettings);
@@ -127,44 +138,59 @@ async function checkAIAvailability() {
 async function initializePopup() {
   const settings = await loadSettings();
 
-  document.getElementById('toggle-extension-enabled').checked = settings.extensionEnabled;
-  document.getElementById('toggle-hiring-posts').checked = settings.showHiringPosts;
-  document.getElementById('toggle-job-announcements').checked = settings.showJobAnnouncements;
-  document.getElementById('toggle-grindset').checked = settings.showGrindset;
-  document.getElementById('toggle-sponsored').checked = settings.showSponsored;
-  document.getElementById('toggle-sales-pitch').checked = settings.showSalesPitch;
-  document.getElementById('toggle-job-seeking').checked = settings.showJobSeeking;
-  document.getElementById('toggle-events').checked = settings.showEvents;
-  document.getElementById('toggle-educational').checked = settings.showEducational;
-  document.getElementById('toggle-project-launch').checked = settings.showProjectLaunch;
-  document.getElementById('toggle-congrats').checked = settings.showCongrats;
-  document.getElementById('toggle-other').checked = settings.showOther;
-  document.getElementById('toggle-ai-enabled').checked = settings.aiEnabled;
-  document.getElementById('toggle-opaque-overlay').checked = settings.opaqueOverlay;
-  document.getElementById('toggle-hide-reveal-button').checked = settings.hideRevealButton;
-  document.getElementById('toggle-experimental-filters').checked = settings.experimentalFilters;
+  function setCheckedIfPresent(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.checked = value;
+  }
+
+  setCheckedIfPresent('toggle-extension-enabled', settings.extensionEnabled);
+  setCheckedIfPresent('toggle-hiring-posts', settings.showHiringPosts);
+  setCheckedIfPresent('toggle-job-announcements', settings.showJobAnnouncements);
+  setCheckedIfPresent('toggle-grindset', settings.showGrindset);
+  setCheckedIfPresent('toggle-sponsored', settings.showSponsored);
+  setCheckedIfPresent('toggle-sales-pitch', settings.showSalesPitch);
+  setCheckedIfPresent('toggle-job-seeking', settings.showJobSeeking);
+  setCheckedIfPresent('toggle-events', settings.showEvents);
+  setCheckedIfPresent('toggle-educational', settings.showEducational);
+  setCheckedIfPresent('toggle-project-launch', settings.showProjectLaunch);
+  setCheckedIfPresent('toggle-congrats', settings.showCongrats);
+  setCheckedIfPresent('toggle-other', settings.showOther);
+  setCheckedIfPresent('toggle-ai-enabled', settings.aiEnabled);
+  setCheckedIfPresent('toggle-opaque-overlay', settings.opaqueOverlay);
+  setCheckedIfPresent('toggle-hide-reveal-button', settings.hideRevealButton);
+  setCheckedIfPresent('toggle-experimental-filters', settings.experimentalFilters);
 
   const aiAvailability = await checkAIAvailability();
   const aiToggle = document.getElementById('toggle-ai-enabled');
   const aiDescription = document.getElementById('ai-description');
 
   if (aiAvailability === "unavailable" || aiAvailability === "downloadable") {
-    aiToggle.disabled = true;
-    aiToggle.checked = false;
-    aiToggle.parentElement.style.opacity = "0.5";
-    aiToggle.parentElement.style.cursor = "not-allowed";
+    if (aiToggle) {
+      aiToggle.disabled = true;
+      aiToggle.checked = false;
+      if (aiToggle.parentElement) {
+        aiToggle.parentElement.style.opacity = "0.5";
+        aiToggle.parentElement.style.cursor = "not-allowed";
+      }
+    }
 
-    if (aiAvailability === "unavailable") {
-      aiDescription.innerHTML = "Enable or disable AI to categorize a post. Chrome AI not available - requires Chrome 127+. <a href='https://huggingface.co/blog/Xenova/run-gemini-nano-in-your-browser' target='_blank'>Installation guide</a>";
-    } else {
-      aiDescription.innerHTML = "Enable or disable AI to categorize a post. Model not downloaded - requires Chrome 127+. <a href='https://huggingface.co/blog/Xenova/run-gemini-nano-in-your-browser' target='_blank'>Installation guide</a>";
+    if (aiDescription) {
+      if (aiAvailability === "unavailable") {
+        aiDescription.innerHTML = "Enable or disable AI to categorize a post. Chrome AI not available - requires Chrome 127+. <a href='https://huggingface.co/blog/Xenova/run-gemini-nano-in-your-browser' target='_blank'>Installation guide</a>";
+      } else {
+        aiDescription.innerHTML = "Enable or disable AI to categorize a post. Model not downloaded - requires Chrome 127+. <a href='https://huggingface.co/blog/Xenova/run-gemini-nano-in-your-browser' target='_blank'>Installation guide</a>";
+      }
     }
   } else if (aiAvailability === "downloading") {
-    aiToggle.disabled = true;
-    aiToggle.checked = false;
-    aiToggle.parentElement.style.opacity = "0.5";
-    aiToggle.parentElement.style.cursor = "not-allowed";
-    aiDescription.textContent = "Enable or disable AI to categorize a post. Model downloading - reload this page once complete";
+    if (aiToggle) {
+      aiToggle.disabled = true;
+      aiToggle.checked = false;
+      if (aiToggle.parentElement) {
+        aiToggle.parentElement.style.opacity = "0.5";
+        aiToggle.parentElement.style.cursor = "not-allowed";
+      }
+    }
+    if (aiDescription) aiDescription.textContent = "Enable or disable AI to categorize a post. Model downloading - reload this page once complete";
   }
 
   updateExperimentalFiltersVisibility(settings.experimentalFilters);
