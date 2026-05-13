@@ -14,7 +14,7 @@ window.LinkedInFilter.scanForPostArticles = function(root) {
   const postElements = window.LinkedInFilter.getPostElementsFromRoot(root);
 
   for (const article of postElements) {
-    if (article.querySelector('[data-view-name="job-card"]') || article.closest('[data-view-name="job-card"]')) {
+    if (window.LinkedInFilter.isJobRecommendationCard(article)) {
       continue;
     }
     const urn = isNewDom ? window.LinkedInFilter.getOrAssignNewDomUrn(article) : (article.getAttribute('data-urn') || window.LinkedInFilter.getActivityUrn(article));
@@ -84,7 +84,7 @@ window.LinkedInFilter.attachFeedObserver = function(feedContainer) {
             addedRoots.push(node);
             continue;
           }
-          if (!window.LinkedInFilter.shouldIgnoreElement(node)) {
+          if (!window.LinkedInFilter.shouldIgnoreElement(node) && !window.LinkedInFilter.isJobRecommendationCard(node)) {
             addedRoots.push(node);
           }
         }

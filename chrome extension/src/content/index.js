@@ -87,6 +87,21 @@ window.LinkedInFilter.reEvaluateAllPosts = async function() {
   }
 
   for (const article of articles) {
+    if (window.LinkedInFilter.isJobRecommendationCard(article)) {
+      const overlays = article.querySelectorAll('.linkedin-filter-overlay');
+      overlays.forEach(overlay => {
+        if (overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      });
+      article.classList.remove('linkedin-filter-blurred');
+      const urn = article.getAttribute('data-urn') || article.getAttribute('data-slopblock-urn') || window.LinkedInFilter.getActivityUrn(article);
+      if (urn) {
+        window.LinkedInFilter.blockedUrns.delete(urn);
+      }
+      continue;
+    }
+
     const isNewDom = window.LinkedInFilter.isInsideNewFeed(article);
     const urn = isNewDom ? window.LinkedInFilter.getOrAssignNewDomUrn(article) : (article.getAttribute('data-urn') || window.LinkedInFilter.getActivityUrn(article));
     if (!urn) continue;

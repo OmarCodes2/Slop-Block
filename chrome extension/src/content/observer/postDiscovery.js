@@ -3,7 +3,19 @@ window.LinkedInFilter = window.LinkedInFilter || {};
 const FEED_ROOT_NEW_SELECTOR = 'div[data-testid="mainFeed"][data-component-type="LazyColumn"]';
 const POST_MARKER_NEW_SELECTOR = 'div[data-view-name="feed-full-update"]';
 const POST_MARKER_V3_SELECTOR = 'h2';
-const JOB_CARD_SELECTOR = '[data-view-name="job-card"]';
+const JOB_CARD_TEXT_PATTERN = /jobs recommended for you/i;
+
+window.LinkedInFilter.isJobRecommendationCard = function(el) {
+  if (!el || el.nodeType !== Node.ELEMENT_NODE) return false;
+
+  const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+  if (JOB_CARD_TEXT_PATTERN.test(text)) return true;
+
+  const ariaLabel = el.getAttribute && el.getAttribute('aria-label');
+  if (ariaLabel && JOB_CARD_TEXT_PATTERN.test(ariaLabel)) return true;
+
+  return false;
+};
 
 window.LinkedInFilter.findNewFeedContainer = function() {
   const candidates = Array.from(document.querySelectorAll(FEED_ROOT_NEW_SELECTOR));
@@ -34,6 +46,10 @@ window.LinkedInFilter.findNewFeedContainer = function() {
 };
 
 window.LinkedInFilter.shouldIgnoreElement = function(el) {
+  if (window.LinkedInFilter.isJobRecommendationCard(el)) {
+    return true;
+  }
+
   const dataId = el.getAttribute('data-id');
   if (dataId && dataId.startsWith('urn:li:aggregate:')) {
     const hasAggregateArticle = el.querySelector('div[role="article"][data-urn^="urn:li:aggregate:"]');
@@ -70,7 +86,7 @@ window.LinkedInFilter.getNewFeedPostRoots = function(scope) {
   v2Markers.forEach((el) => {
     const listItem = el.closest('[role="listitem"], [role="article"]');
     if (listItem) {
-      if (listItem.querySelector(JOB_CARD_SELECTOR) || listItem.closest(JOB_CARD_SELECTOR)) {
+      if (window.LinkedInFilter.isJobRecommendationCard(listItem)) {
         return;
       }
       roots.add(listItem);
@@ -81,7 +97,7 @@ window.LinkedInFilter.getNewFeedPostRoots = function(scope) {
   allListItems.forEach((listItem) => {
     if (roots.has(listItem)) return;
 
-    if (listItem.querySelector(JOB_CARD_SELECTOR) || listItem.closest(JOB_CARD_SELECTOR)) {
+    if (window.LinkedInFilter.isJobRecommendationCard(listItem)) {
       return;
     }
 
@@ -120,6 +136,9 @@ window.LinkedInFilter.getPostElementsFromRoot = function(root) {
     return window.LinkedInFilter.getNewFeedPostRoots(root);
   }
   if (window.LinkedInFilter.shouldIgnoreElement(root)) {
+    return [];
+  }
+  if (window.LinkedInFilter.isJobRecommendationCard(root)) {
     return [];
   }
   return Array.from(root.querySelectorAll('div[role="article"][data-urn^="urn:li:activity:"], div[role="article"][data-urn^="urn:li:aggregate:"]'));
