@@ -30,6 +30,84 @@ function extractNameFromLabel(label) {
   return normalizeActorName(t);
 }
 
+function getV3ActorNameHint(postRoot) {
+  if (!postRoot || !postRoot.querySelector) return '';
+
+  const labelSources = postRoot.querySelectorAll('button[aria-label*="post by"], [aria-label*="post by"]');
+  for (const source of labelSources) {
+    const label = source.getAttribute && source.getAttribute('aria-label');
+    const actorName = extractNameFromLabel(label);
+    if (actorName) return actorName;
+  }
+
+  return '';
+}
+
+function isLikelyV3ActorAnchor(anchor, actorNameHint = '') {
+  if (!anchor || !anchor.href || !ACTOR_URL_PATTERNS.test(anchor.href)) return false;
+
+  const text = [
+    anchor.textContent,
+    anchor.getAttribute && anchor.getAttribute('aria-label')
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  if (/\b(reacted|likes this|comment|repost|follow|send|view my website|open control menu|hide post)\b/i.test(text)) {
+    return false;
+  }
+
+  if (anchor.closest && anchor.closest('[data-testid="expandable-text-box"], [componentkey^="feed-commentary"]')) {
+    return false;
+  }
+
+  if (!actorNameHint) {
+    return true;
+  }
+
+  const hint = actorNameHint.toLowerCase();
+  const candidates = [
+    anchor.textContent,
+    anchor.getAttribute && anchor.getAttribute('aria-label'),
+    anchor.querySelector && anchor.querySelector('strong') && anchor.querySelector('strong').textContent,
+    anchor.querySelector && anchor.querySelector('p') && anchor.querySelector('p').textContent,
+    anchor.querySelector && anchor.querySelector('img[alt]') && anchor.querySelector('img[alt]').alt
+  ]
+    .filter(Boolean)
+    .map(value => String(value).toLowerCase());
+
+  return candidates.some(value => value.includes(hint));
+}
+
+function scoreV3ActorAnchor(anchor, actorNameHint = '') {
+  let score = 0;
+  if (!anchor || !anchor.href || !ACTOR_URL_PATTERNS.test(anchor.href)) return -1;
+
+  if (anchor.querySelector('strong')) score += 4;
+  if (anchor.querySelector('p')) score += 3;
+  if (anchor.querySelector('img[alt]')) score += 2;
+  if (anchor.getAttribute && anchor.getAttribute('aria-label')) score += 1;
+
+  const text = [
+    anchor.textContent,
+    anchor.getAttribute && anchor.getAttribute('aria-label')
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  if (/\b(reacted|likes this|comment|repost|follow|send|view my website|open control menu|hide post)\b/i.test(text)) {
+    score -= 10;
+  }
+
+  if (actorNameHint && text.toLowerCase().includes(actorNameHint.toLowerCase())) {
+    score += 5;
+  }
+
+  return score;
+}
+
 window.LinkedInFilter.extractActorFromPost = function(postRoot) {
   if (!postRoot || !postRoot.querySelector) return null;
 
@@ -134,13 +212,25 @@ window.LinkedInFilter.extractActorFromPost = function(postRoot) {
 window.LinkedInFilter.extractActorFromV3Post = function(postRoot) {
   if (!postRoot || !postRoot.querySelector) return null;
 
+  const actorNameHint = getV3ActorNameHint(postRoot);
   const allActorLinks = postRoot.querySelectorAll('a[href*="linkedin.com/in/"], a[href*="linkedin.com/company/"], a[href*="linkedin.com/school/"]');
 
   let anchor = null;
   for (const link of allActorLinks) {
-    if (link.href && ACTOR_URL_PATTERNS.test(link.href)) {
+    if (isLikelyV3ActorAnchor(link, actorNameHint)) {
       anchor = link;
       break;
+    }
+  }
+
+  if (!anchor) {
+    let bestScore = -1;
+    for (const link of allActorLinks) {
+      const score = scoreV3ActorAnchor(link, actorNameHint);
+      if (score > bestScore) {
+        bestScore = score;
+        anchor = link;
+      }
     }
   }
 
@@ -149,9 +239,9 @@ window.LinkedInFilter.extractActorFromV3Post = function(postRoot) {
   const actorProfileUrl = anchor.href.startsWith('http') ? anchor.href : new URL(anchor.href, document.baseURI).href;
   if (!ACTOR_URL_PATTERNS.test(actorProfileUrl)) return null;
 
-  let actorName = null;
+  let actorName = actorNameHint || null;
   const p = anchor.querySelector('p');
-  if (p && p.textContent && p.textContent.trim()) {
+  if (!actorName && p && p.textContent && p.textContent.trim()) {
     actorName = p.textContent.trim();
   }
 
