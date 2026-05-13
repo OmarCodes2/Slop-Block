@@ -74,17 +74,18 @@ The extension follows a clean separation of concerns with clear boundaries betwe
 - Content scripts injected into LinkedIn
 - Popup UI for user controls
 
-**Content Scripts** (LinkedIn page) - Handle the heavy lifting:
-- `content_script.js` - Orchestrator that observes DOM mutations, identifies posts via URNs, and coordinates classification and blocking
-- `filter.js` - Pure heuristics engine (fast, local, deterministic) with precedence-ordered classification rules
-- `ui.js` - Handles blur overlays, labels, and user reveal actions
+**Content Scripts** (LinkedIn page) - Handle the heavy lifting (now under `chrome extension/src/content`):
+- `src/content/index.js` - Orchestrator that observes DOM mutations, identifies posts via URNs, and coordinates classification and blocking
+- `src/content/classification/classifyPost.js` - Pure heuristics engine (fast, local, deterministic) with precedence-ordered classification rules
+- `src/content/overlay/renderOverlay.js`, `updateOverlay.js`, `removeOverlay.js` - UI overlay and reveal actions
 
-**Background Service Worker** - Only place where AI runs:
-- `service_worker.js` - Routes messages from content scripts
-- `geminiClient.js` - Wraps Chrome's built-in LanguageModel API, caching a single session
+**Background Service Worker** - Only place where AI runs (now under `chrome extension/src/background`):
+- `src/background/serviceWorker.js` - Routes messages from content scripts
+- `src/background/geminiClient.js` - Wraps Chrome's built-in LanguageModel API, caching a single session
 
-**Popup + Storage** - Manage user preferences:
-- `popup.js` - Saves settings to `chrome.storage.sync`
+**Popup + Storage** - Manage user preferences (now under `chrome extension/src/popup`):
+- `src/popup/popup.js` - Saves settings to `chrome.storage.sync`
+- `src/popup/popup.html`, `src/popup/popup.css` - Popup UI
 - Content scripts re-evaluate visible posts when settings change
 
 ### Why This Architecture Matters
@@ -148,25 +149,39 @@ The extension processes posts in a heuristics-first approach:
 Slop-Block/
 ├── architecture.jpg          # Architecture diagram
 ├── sequence.jpg              # Runtime flow diagram
-├── chrome extension/         # Chrome extension source code
-│   ├── background/         # Background service worker
-│   │   ├── service_worker.js    # Message routing
-│   │   └── geminiClient.js     # LanguageModel API wrapper
-│   ├── content/             # Content scripts
-│   │   ├── content_script.js   # Main orchestrator
-│   │   ├── filter.js           # Heuristics classification
-│   │   ├── ui.js               # UI overlay management
-│   │   └── styles.css          # Overlay styles
-│   ├── popup/               # Extension popup UI
-│   │   ├── popup.html
-│   │   ├── popup.js
-│   │   └── popup.css
+├── chrome extension/         # Chrome extension package
+│   ├── src/                 # Source files used by `manifest.json`
+│   │   ├── background/      # Background service worker
+│   │   │   ├── serviceWorker.js
+│   │   │   └── geminiClient.js
+│   │   ├── content/         # Content scripts and helpers
+│   │   │   ├── index.js
+│   │   │   ├── classification/
+│   │   │   │   ├── categoryConfig.js
+│   │   │   │   ├── ruleOrder.js
+│   │   │   │   └── classifyPost.js
+│   │   │   ├── overlay/
+│   │   │   │   ├── renderOverlay.js
+│   │   │   │   ├── updateOverlay.js
+│   │   │   │   └── removeOverlay.js
+│   │   │   ├── posts/
+│   │   │   │   ├── postText.js
+│   │   │   │   ├── postIdentity.js
+│   │   │   │   └── postMetadata.js
+│   │   │   └── observer/    # feed observation / navigation helpers
+│   │   │       ├── feedObserver.js
+│   │   │       ├── navigationWatcher.js
+│   │   │       └── postDiscovery.js
+│   │   └── popup/           # Popup UI
+│   │       ├── popup.html
+│   │       ├── popup.js
+│   │       └── popup.css
 │   ├── icons/               # Extension icons
-│   └── manifest.json        # Extension manifest
+│   └── manifest.json        # Extension manifest (points to `src/` files)
 └── docs/                    # Website documentation
-    ├── index.html
-    ├── styles.css
-    └── script.js
+   ├── index.html
+   ├── styles.css
+   └── script.js
 ```
 
 ## How It Works
