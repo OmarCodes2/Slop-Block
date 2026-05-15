@@ -1,4 +1,5 @@
 window.LinkedInFilter = window.LinkedInFilter || {};
+
 const GUARANTEED_HIRING_PHRASES = [
   "we are hiring","we're hiring","we are now hiring","we're now hiring",
   "we are currently hiring","we're currently hiring","we are actively hiring","we're actively hiring",
@@ -182,42 +183,6 @@ function normalizeText(text) {
     .trim();
 }
 
-window.LinkedInFilter.extractPostText = function(postElement) {
-  if (!postElement) return '';
-  
-  const textSelectors = [
-    '.feed-shared-update-v2__description',
-    '.feed-shared-text-view',
-    '.feed-shared-text',
-    '[data-test-id="main-feed-activity-card__commentary"]',
-    '.update-components-text',
-    '.feed-shared-inline-show-more-text',
-    '.feed-shared-text__text-view',
-    'div[data-view-name="feed-full-update"]' // New LinkedIn feed DOM (A/B test)
-  ];
-  
-  let textContent = '';
-  
-  for (const selector of textSelectors) {
-    const element = postElement.querySelector(selector);
-    if (element) {
-      textContent = element.innerText || element.textContent || '';
-      if (textContent.trim()) {
-        break;
-      }
-    }
-  }
-  
-  if (!textContent.trim()) {
-    const clone = postElement.cloneNode(true);
-    const overlays = clone.querySelectorAll('.linkedin-filter-overlay, button, .feed-shared-social-action-bar');
-    overlays.forEach(el => el.remove());
-    textContent = clone.innerText || clone.textContent || '';
-  }
-  
-  return textContent;
-};
-
 function matchesPhrases(text, phrases) {
   for (const phrase of phrases) {
     if (text.includes(phrase.toLowerCase())) {
@@ -239,53 +204,53 @@ function matchesRegex(text, regexes) {
 window.LinkedInFilter.classifyPost = function(postElement) {
   const postText = window.LinkedInFilter.extractPostText(postElement);
   const normalizedText = normalizeText(postText);
-  
-  if (matchesPhrases(normalizedText, GUARANTEED_HIRED_ANNOUNCEMENT_PHRASES) || 
+
+  if (matchesPhrases(normalizedText, GUARANTEED_HIRED_ANNOUNCEMENT_PHRASES) ||
       matchesRegex(postText, GUARANTEED_HIRED_ANNOUNCEMENT_REGEX)) {
     return "hired_announcement";
   }
-  
-  if (matchesPhrases(normalizedText, GUARANTEED_HIRING_PHRASES) || 
+
+  if (matchesPhrases(normalizedText, GUARANTEED_HIRING_PHRASES) ||
       matchesRegex(postText, GUARANTEED_HIRING_REGEX)) {
     return "hiring";
   }
-  
-  if (matchesPhrases(normalizedText, GUARANTEED_GRINDSET_PHRASES) || 
+
+  if (matchesPhrases(normalizedText, GUARANTEED_GRINDSET_PHRASES) ||
       matchesRegex(postText, GUARANTEED_GRINDSET_REGEX)) {
     return "grindset";
   }
-  
-  if (matchesPhrases(normalizedText, ADS_SPONSORED_PHRASES) || 
+
+  if (matchesPhrases(normalizedText, ADS_SPONSORED_PHRASES) ||
       matchesRegex(postText, ADS_SPONSORED_REGEX)) {
     return "sponsored";
   }
-  
-  if (matchesPhrases(normalizedText, SALES_PITCH_PHRASES) || 
+
+  if (matchesPhrases(normalizedText, SALES_PITCH_PHRASES) ||
       matchesRegex(postText, SALES_PITCH_REGEX)) {
     return "sales_pitch";
   }
-  
-  if (matchesPhrases(normalizedText, JOB_SEEKING_PHRASES) || 
+
+  if (matchesPhrases(normalizedText, JOB_SEEKING_PHRASES) ||
       matchesRegex(postText, JOB_SEEKING_REGEX)) {
     return "job_seeking";
   }
-  
-  if (matchesPhrases(normalizedText, EVENT_WEBINAR_PHRASES) || 
+
+  if (matchesPhrases(normalizedText, EVENT_WEBINAR_PHRASES) ||
       matchesRegex(postText, EVENT_WEBINAR_REGEX)) {
     return "events";
   }
-  
+
   if (matchesRegex(postText, EDUCATIONAL_TIPS_REGEX)) {
     return "educational";
   }
-  
+
   if (matchesRegex(postText, PROJECT_LAUNCH_REGEX)) {
     return "project_launch";
   }
-  
+
   if (matchesRegex(postText, CERTIFICATIONS_REGEX)) {
     return "congrats";
   }
-  
+
   return "other";
 };

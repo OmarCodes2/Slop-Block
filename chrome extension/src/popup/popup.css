@@ -209,6 +209,23 @@ body {
   color: #ffffff;
 }
 
+/* Help text shown under toggles (AI install hints) */
+.toggle-help {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.toggle-help a {
+  color: #e4e4e7;
+  text-decoration: underline;
+}
+
+.toggle-help a:hover {
+  color: #ffffff;
+}
+
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -261,6 +278,31 @@ body {
   transform: translateX(20px);
 }
 
+.experimental-filters-block {
+  display: none;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #2d3748;
+}
+
+.experimental-filters-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.more-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.more-filters-expanded {
+  max-height: none;
+}
+
 .toggle-switch input:focus + .toggle-slider {
   box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.2);
 }
@@ -294,8 +336,4 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.more-filters-expanded {
-  max-height: none;
 }

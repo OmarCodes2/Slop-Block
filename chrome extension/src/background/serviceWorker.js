@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     })();
     return true;
   }
-  
+
   if (message.action === 'checkAIAvailability') {
     (async () => {
       try {

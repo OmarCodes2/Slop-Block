@@ -33,14 +33,17 @@ We want to **HIDE**:
    - Only escalates when local heuristic cannot confidently determine classification
    - Defaults to HIDE (keep blurred) if API unavailable or on errors
 
-### File Structure
+### File Structure (current)
 
 ```
-/manifest.json                 # Chrome MV3 manifest
-/background/service_worker.js  # Background service worker (AI classification)
-/content/content_script.js     # Content script (post detection, local heuristics, UI)
-/content/styles.css            # Blur overlay styles
-/README.md                     # This file
+/manifest.json                      # Chrome MV3 manifest (references `src/`)
+/src/background/serviceWorker.js    # Background service worker (AI classification)
+/src/background/geminiClient.js     # LanguageModel wrapper
+/src/content/index.js               # Content script orchestrator
+/src/content/...                    # classification/, overlay/, posts/, observer/ helpers
+/src/popup/popup.html               # Popup UI
+/src/popup/popup.js                 # Popup logic and settings
+/src/popup/popup.css                # Popup styles
 ```
 
 ## Setup Instructions
@@ -56,7 +59,7 @@ We want to **HIDE**:
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable "Developer mode" (toggle in top-right)
 4. Click "Load unpacked"
-5. Select the extension directory (`Slop-Block`)
+5. Select the extension directory (`Slop-Block/chrome extension`) — the manifest points at `src/` files inside that folder
 
 ### LanguageModel API Setup (Optional)
 

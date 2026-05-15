@@ -11,7 +11,7 @@ export async function checkAvailability() {
   if (!LM) {
     return "unavailable";
   }
-  
+
   try {
     const status = await LM.availability();
     return status;
